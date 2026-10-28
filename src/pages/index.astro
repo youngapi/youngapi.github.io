@@ -43,7 +43,7 @@ const level = (n: number) => (n === 0 ? 0 : Math.min(4, Math.ceil((n / maxMonth)
     <dl class="stats">
       <div><dt>글</dt><dd>{posts.length}</dd></div>
       <div><dt>태그</dt><dd>{countTags(posts).length}</dd></div>
-      <div><dt>기간</dt><dd class="small">{years.length ? `${years[years.length - 1]} – ${years[0]}` : "-"}</dd></div>
+      <div><dt>기간</dt><dd class="small">{years.length === 0 ? "-" : years.length === 1 ? years[0] : `${years[years.length - 1]} – ${years[0]}`}</dd></div>
       <div><dt>최근 글</dt><dd class="small">{latest ? formatDate(latest.data.date) : "-"}</dd></div>
     </dl>
   </section>
