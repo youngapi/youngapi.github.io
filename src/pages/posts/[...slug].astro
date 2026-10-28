@@ -1,47 +1,77 @@
 ---
-// 글 상세 페이지 — 마크다운 본문과 카테고리·태그·작업한 repo 를 보여 준다.
+// 글 상세 페이지 — 머리(카테고리·제목·날짜·읽는 시간·태그), 본문, 넓은 화면의 목차, 작업한 repo, 이전/다음 글.
 import { render } from "astro:content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { getPublishedPosts, type Post } from "../../lib/posts";
+import { getPublishedPosts, readingMinutes, type Post } from "../../lib/posts";
 import { findCategory, formatDate, SITE } from "../../site";
 
-// 공개된 글마다 페이지를 하나씩 만든다.
+// 공개된 글마다 페이지를 하나씩 만들고, 앞뒤 글을 함께 넘긴다.
 export async function getStaticPaths() {
   const posts = await getPublishedPosts();
-  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+  return posts.map((post, i) => ({
+    params: { slug: post.id },
+    props: { post, newer: posts[i - 1] ?? null, older: posts[i + 1] ?? null },
+  }));
 }
 
-const { post } = Astro.props as { post: Post };
-const { Content } = await render(post);
+const { post, newer, older } = Astro.props as { post: Post; newer: Post | null; older: Post | null };
+const { Content, headings } = await render(post);
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
 const category = findCategory(post.data.category);
 const base = import.meta.env.BASE_URL;
 ---
 
-<BaseLayout title={post.data.title} description={post.data.description} activeCategory={category.slug}>
-  <article>
-    <header class="post-head">
-      <div class="meta">
-        <a class="chip" href={`${base}category/${category.slug}/`}>{category.name}</a>
-        <time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
+<BaseLayout title={post.data.title} description={post.data.description} activeCategory={category.slug} width="wide">
+  <div class="post-layout" style={`--cat:${category.color}`}>
+    <article class="post">
+      <header class="post-head">
+        <a class="badge" href={`${base}category/${category.slug}/`}><i class="dot"></i>{category.name}</a>
+        <h1>{post.data.title}</h1>
+        <p class="post-desc">{post.data.description}</p>
+        <div class="meta">
+          <time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
+          <span>·</span>
+          <span>{readingMinutes(post)}분</span>
+          {post.data.tags.map((tag) => <a class="tag" href={`${base}tags/${tag}/`}>#{tag}</a>)}
+        </div>
+      </header>
+
+      <div class="prose">
+        <Content />
       </div>
-      <h1>{post.data.title}</h1>
-      <div class="meta">
-        {post.data.tags.map((tag) => <a class="tag" href={`${base}tags/${tag}/`}>#{tag}</a>)}
-      </div>
-    </header>
-    <div class="prose">
-      <Content />
-    </div>
-    {post.data.repos.length > 0 && (
-      <p class="repos">
-        작업한 저장소:{" "}
-        {post.data.repos.map((repo, i) => (
-          <>
-            {i > 0 && ", "}
-            <a href={`${SITE.github}/${repo}`}>{repo}</a>
-          </>
-        ))}
-      </p>
+
+      {post.data.repos.length > 0 && (
+        <aside class="repo-box">
+          <span>작업한 저장소</span>
+          <div>
+            {post.data.repos.map((repo) => (
+              <a href={`${SITE.github}/${repo}`}>{repo}</a>
+            ))}
+          </div>
+        </aside>
+      )}
+
+      {(newer || older) && (
+        <nav class="post-nav" aria-label="이전 글과 다음 글">
+          {older ? (
+            <a href={`${base}posts/${older.id}/`}><span>이전 글</span>{older.data.title}</a>
+          ) : <span></span>}
+          {newer && (
+            <a class="next" href={`${base}posts/${newer.id}/`}><span>다음 글</span>{newer.data.title}</a>
+          )}
+        </nav>
+      )}
+    </article>
+
+    {toc.length > 1 && (
+      <aside class="toc" aria-label="목차">
+        <p>목차</p>
+        <ul>
+          {toc.map((h) => (
+            <li class={`d${h.depth}`}><a href={`#${h.slug}`}>{h.text}</a></li>
+          ))}
+        </ul>
+      </aside>
     )}
-  </article>
+  </div>
 </BaseLayout>

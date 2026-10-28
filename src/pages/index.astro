@@ -1,30 +1,52 @@
 ---
-// 첫 화면 — 기술 카테고리 카드(글 수 포함)와 최근 글 10개를 보여 준다.
+// 첫 화면 — 소개 영역(글 수·최근 글 날짜), 기술 카테고리 카드, 최근 글 10개를 보여 준다.
 import BaseLayout from "../layouts/BaseLayout.astro";
 import PostList from "../components/PostList.astro";
-import { getPublishedPosts } from "../lib/posts";
-import { CATEGORIES, SITE } from "../site";
+import { countTags, getPublishedPosts } from "../lib/posts";
+import { CATEGORIES, SITE, formatDate } from "../site";
 
 const posts = await getPublishedPosts();
 const base = import.meta.env.BASE_URL;
 const countOf = (slug: string) => posts.filter((p) => p.data.category === slug).length;
+const tagCount = countTags(posts).length;
 ---
 
 <BaseLayout>
-  <h1 class="page-title">{SITE.title}</h1>
-  <p class="page-sub">{SITE.description}</p>
+  <section class="hero">
+    <p class="eyebrow">Dev log</p>
+    <h1>{SITE.description}</h1>
+    <p class="hero-sub">그날 한 작업, 막혔던 것, 찾아본 것을 적는다. 공개 저장소에 커밋한 날은 다음 날 아침 일지 초안이 올라온다.</p>
+    <dl class="stats">
+      <div><dt>글</dt><dd>{posts.length}</dd></div>
+      <div><dt>태그</dt><dd>{tagCount}</dd></div>
+      <div><dt>마지막 업데이트</dt><dd class="small">{posts[0] ? formatDate(posts[0].data.date) : "-"}</dd></div>
+    </dl>
+    <div class="hero-links">
+      <a class="btn" href={`${base}posts/`}>전체 글</a>
+      <a class="btn ghost" href={SITE.github}>GitHub</a>
+    </div>
+  </section>
 
-  <h2 class="section-title">기술별로 보기</h2>
-  <div class="cat-grid">
-    {CATEGORIES.map((c) => (
-      <a class="cat-card" href={`${base}category/${c.slug}/`}>
-        <strong>{c.name}<span>{countOf(c.slug)}</span></strong>
-        <small>{c.description}</small>
-      </a>
-    ))}
-  </div>
+  <section>
+    <h2 class="section-title">기술별</h2>
+    <div class="cat-grid">
+      {CATEGORIES.map((c) => (
+        <a class="cat-card" href={`${base}category/${c.slug}/`} style={`--cat:${c.color}`}>
+          <span class="cat-card-head">
+            <span class="cat-name"><i class="dot"></i>{c.name}</span>
+            <span class="count">{countOf(c.slug)}</span>
+          </span>
+          <small>{c.description}</small>
+        </a>
+      ))}
+    </div>
+  </section>
 
-  <h2 class="section-title">최근 글</h2>
-  <PostList posts={posts.slice(0, 10)} />
-  {posts.length > 10 && <p><a href={`${base}posts/`}>전체 글 보기 →</a></p>}
+  <section>
+    <div class="section-row">
+      <h2 class="section-title">최근 글</h2>
+      {posts.length > 10 && <a class="more" href={`${base}posts/`}>전체 보기 →</a>}
+    </div>
+    <PostList posts={posts.slice(0, 10)} />
+  </section>
 </BaseLayout>

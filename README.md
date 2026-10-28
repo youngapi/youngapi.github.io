@@ -43,7 +43,7 @@ npm run dev
 
 1. 어제(KST) `youngapi` 의 공개 저장소에 올라온 커밋을 모든 브랜치에서 모읍니다. 커밋 메시지와 바뀐 파일 목록만 쓰고, **코드 내용은 가져오지 않습니다.**
 2. `scripts/devlog/sanitize.mjs` 가 키·토큰·이메일·IP·URL·DB 접속 문자열·`.env` 같은 파일과 `DEVLOG_REDACT_WORDS` 의 단어를 지웁니다.
-3. Claude API(`claude-opus-5-5`)가 제목·요약·카테고리·태그·본문을 씁니다.
+3. Claude API(`claude-opus-5-5`)가 제목·요약·카테고리·태그·본문을 씁니다. 말투는 본인이 쓴 개발 일지처럼 반말 "~했다" 체이고, AI 티 나는 표현 목록을 피하게 합니다(`scripts/devlog/writer.mjs` 의 `SYSTEM_PROMPT`).
 4. 완성된 글을 다시 한 번 걸러 내고, 빌드가 되는지 확인한 뒤 `devlog/YYYY-MM-DD` 브랜치로 PR 을 올립니다.
 5. PR 을 읽고 고쳐서 머지하면 게시됩니다. 작업이 없는 날에는 아무것도 만들지 않습니다.
 

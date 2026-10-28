@@ -8,12 +8,15 @@ interface Props {
   description?: string;
   // 메뉴에서 강조할 카테고리 slug
   activeCategory?: string;
+  // 본문 폭: 기본은 목록용, wide 는 글+목차용
+  width?: "default" | "wide";
 }
 
-const { title, description = SITE.description, activeCategory } = Astro.props;
+const { title, description = SITE.description, activeCategory, width = "default" } = Astro.props;
 const pageTitle = title ? `${title} · ${SITE.title}` : SITE.title;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const base = import.meta.env.BASE_URL;
+const path = Astro.url.pathname;
 ---
 
 <!doctype html>
@@ -31,6 +34,11 @@ const base = import.meta.env.BASE_URL;
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonical} />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" />
     <script is:inline>
       // 저장해 둔 테마를 화면이 그려지기 전에 적용해서 깜빡임을 막는다
       try {
@@ -41,31 +49,45 @@ const base = import.meta.env.BASE_URL;
   </head>
   <body>
     <header class="site-header">
-      <div class="wrap">
+      <div class="container">
         <div class="top">
-          <a class="brand" href={base}>{SITE.title}</a>
-          <div class="top-links">
-            <a href={`${base}posts/`}>전체 글</a>
-            <a href={`${base}tags/`}>태그</a>
-            <a href={`${base}about/`}>소개</a>
-            <button class="theme-toggle" type="button" aria-label="다크 모드 전환" id="theme-toggle">◐</button>
-          </div>
+          <a class="brand" href={base} aria-label={SITE.title}>
+            <span class="brand-mark">y</span>
+            <span class="brand-name">youngapi<span>.log</span></span>
+          </a>
+          <nav class="top-links" aria-label="주요 메뉴">
+            <a href={`${base}posts/`} aria-current={path.startsWith(`${base}posts`) ? "page" : undefined}>글</a>
+            <a href={`${base}tags/`} aria-current={path.startsWith(`${base}tags`) ? "page" : undefined}>태그</a>
+            <a href={`${base}about/`} aria-current={path.startsWith(`${base}about`) ? "page" : undefined}>소개</a>
+            <button class="icon-btn" type="button" aria-label="다크 모드 전환" id="theme-toggle">
+              <svg class="i-sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              <svg class="i-moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+            </button>
+          </nav>
         </div>
         <nav class="cat-nav" aria-label="기술 카테고리">
           {CATEGORIES.map((c) => (
-            <a href={`${base}category/${c.slug}/`} aria-current={activeCategory === c.slug ? "page" : undefined}>
-              {c.name}
+            <a href={`${base}category/${c.slug}/`} style={`--cat:${c.color}`} aria-current={activeCategory === c.slug ? "page" : undefined}>
+              <i class="dot"></i>{c.name}
             </a>
           ))}
         </nav>
       </div>
     </header>
-    <main class="wrap">
+    <main class:list={["container", width === "wide" ? "is-wide" : "is-default"]}>
       <slot />
     </main>
     <footer class="site-footer">
-      <div class="wrap">
-        © {new Date().getFullYear()} {SITE.author} · <a href={SITE.github}>GitHub</a> · <a href={`${base}rss.xml`}>RSS</a>
+      <div class="container footer-inner">
+        <div>
+          <strong>{SITE.title}</strong>
+          <p>{SITE.description}</p>
+        </div>
+        <div class="footer-links">
+          <a href={SITE.github}>GitHub</a>
+          <a href={`${base}rss.xml`}>RSS</a>
+          <span>© {new Date().getFullYear()} {SITE.author}</span>
+        </div>
       </div>
     </footer>
     <script is:inline>

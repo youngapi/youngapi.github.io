@@ -15,7 +15,10 @@ const posts = (await getPublishedPosts()).filter((p) => p.data.category === cate
 ---
 
 <BaseLayout title={category.name} description={category.description} activeCategory={category.slug}>
-  <h1 class="page-title">{category.name}</h1>
-  <p class="page-sub">{category.description} · 글 {posts.length}개</p>
+  <header class="page-head cat-head" style={`--cat:${category.color}`}>
+    <p class="eyebrow"><i class="dot"></i>Category</p>
+    <h1 class="page-title">{category.name}</h1>
+    <p class="page-sub">{category.description} · 글 {posts.length}개</p>
+  </header>
   <PostList posts={posts} hideCategory />
 </BaseLayout>

@@ -17,7 +17,10 @@ const { tag, posts } = Astro.props;
 ---
 
 <BaseLayout title={`#${tag}`} description={`${tag} 태그 글 목록`}>
-  <h1 class="page-title">#{tag}</h1>
-  <p class="page-sub">글 {posts.length}개</p>
+  <header class="page-head">
+    <p class="eyebrow">Tag</p>
+    <h1 class="page-title">#{tag}</h1>
+    <p class="page-sub">글 {posts.length}개</p>
+  </header>
   <PostList posts={posts} />
 </BaseLayout>

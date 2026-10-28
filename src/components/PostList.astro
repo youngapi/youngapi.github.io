@@ -1,7 +1,7 @@
 ---
-// 글 목록 한 묶음을 그리는 컴포넌트 — 제목, 요약, 날짜, 카테고리, 태그를 보여 준다.
-import type { Post } from "../lib/posts";
-import { findCategory, formatDate } from "../site";
+// 글 목록 한 묶음을 그리는 컴포넌트 — 왼쪽에 날짜, 오른쪽에 카테고리·제목·요약·태그·읽는 시간을 보여 준다.
+import { readingMinutes, type Post } from "../lib/posts";
+import { findCategory } from "../site";
 
 interface Props {
   posts: Post[];
@@ -11,26 +11,44 @@ interface Props {
 
 const { posts, hideCategory = false } = Astro.props;
 const base = import.meta.env.BASE_URL;
+
+// 날짜를 목록 왼쪽 칸에 쓸 "10.28" / "2026" 두 줄로 나눈다.
+function dateParts(date: Date) {
+  const kst = new Date(date.getTime() + 9 * 3600 * 1000);
+  const mm = String(kst.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(kst.getUTCDate()).padStart(2, "0");
+  return { day: `${mm}.${dd}`, year: String(kst.getUTCFullYear()) };
+}
 ---
 
 {posts.length === 0 ? (
-  <p class="empty">아직 글이 없습니다.</p>
+  <p class="empty">아직 글이 없다.</p>
 ) : (
   <ul class="post-list">
-    {posts.map((post) => (
-      <li class="post-item">
-        <h3><a href={`${base}posts/${post.id}/`}>{post.data.title}</a></h3>
-        <p>{post.data.description}</p>
-        <div class="meta">
-          <time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
-          {!hideCategory && (
-            <a class="chip" href={`${base}category/${post.data.category}/`}>{findCategory(post.data.category).name}</a>
-          )}
-          {post.data.tags.map((tag) => (
-            <a class="tag" href={`${base}tags/${tag}/`}>#{tag}</a>
-          ))}
-        </div>
-      </li>
-    ))}
+    {posts.map((post) => {
+      const category = findCategory(post.data.category);
+      const { day, year } = dateParts(post.data.date);
+      return (
+        <li class="post-row" style={`--cat:${category.color}`}>
+          <time class="post-date" datetime={post.data.date.toISOString()}>
+            <b>{day}</b>
+            <span>{year}</span>
+          </time>
+          <div class="post-main">
+            {!hideCategory && (
+              <a class="badge" href={`${base}category/${category.slug}/`}><i class="dot"></i>{category.name}</a>
+            )}
+            <h3><a href={`${base}posts/${post.id}/`}>{post.data.title}</a></h3>
+            <p>{post.data.description}</p>
+            <div class="meta">
+              <span>{readingMinutes(post)}분</span>
+              {post.data.tags.map((tag) => (
+                <a class="tag" href={`${base}tags/${tag}/`}>#{tag}</a>
+              ))}
+            </div>
+          </div>
+        </li>
+      );
+    })}
   </ul>
 )}

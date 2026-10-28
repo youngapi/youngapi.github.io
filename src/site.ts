@@ -3,7 +3,7 @@ import categoryList from "./data/categories.json";
 
 export const SITE = {
   title: "youngapi.log",
-  description: "매일 만든 것과 배운 것을 기록하는 개발 블로그",
+  description: "백엔드 개발자의 작업 일지",
   author: "youngapi",
   github: "https://github.com/youngapi",
   locale: "ko-KR",
