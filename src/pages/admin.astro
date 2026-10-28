@@ -1,6 +1,6 @@
 ---
-// 관리 페이지 — 비공개 저장소(devlog-data/drafts)에 보류된 글을 미리 보고, 카테고리·하위 카테고리를 정해
-// 골라서 블로그에 공개하거나 버린다.
+// 관리 페이지 — 비공개 저장소(devlog-data/drafts)에 보류된 글을 미리 보고, 카테고리·하위 카테고리·프로젝트·글 종류를 정해
+// 골라서 블로그에 공개하거나 버린다. 새 프로젝트도 여기서 만든다(블로그의 src/data/projects.json 에 커밋).
 // 서버가 없으므로 사용자가 브라우저에 넣은 GitHub fine-grained 토큰으로 GitHub API 를 직접 부른다.
 // 토큰 주인이 youngapi 일 때만 화면을 연다. 토큰은 이 브라우저 localStorage 에만 둔다.
 import BaseLayout from "../layouts/BaseLayout.astro";
@@ -12,6 +12,7 @@ const config = {
   draftRepo: "youngapi/devlog-data",
   draftDir: "drafts",
   postDir: "src/content/posts",
+  projectsPath: "src/data/projects.json",
   categories: CATEGORIES.map((c) => ({
     slug: c.slug,
     name: c.name,
@@ -61,6 +62,25 @@ const config = {
     const $ = (id) => document.getElementById(id);
     let token = "";
     let drafts = []; // {name, path, sha, text, meta}
+    let projects = []; // 블로그의 src/data/projects.json (로그인 때 GitHub 에서 최신본을 읽는다)
+
+    // 블로그 저장소의 프로젝트 목록을 읽는다. 파일이 없으면 빈 목록.
+    async function loadProjects() {
+      try {
+        const file = await gh(`/repos/${config.blogRepo}/contents/${config.projectsPath}`);
+        projects = JSON.parse(decode(file.content));
+      } catch (e) {
+        if (!String(e.message).startsWith("404")) throw e;
+        projects = [];
+      }
+    }
+
+    // 프로젝트 목록을 블로그 저장소에 한 커밋으로 저장한다(배포되면 프로젝트 페이지가 생긴다).
+    async function saveProjects(list, message) {
+      const clean = list.map((p) => Object.fromEntries(Object.entries(p).filter(([, v]) => v !== undefined && !(Array.isArray(v) && !v.length))));
+      await commitFiles(config.blogRepo, [{ path: config.projectsPath, content: JSON.stringify(clean, null, 2) + "\n" }], message);
+      projects = clean;
+    }
 
     // 토큰을 읽고 쓴다. localStorage 가 막힌 브라우저에서는 이 페이지를 연 동안만 쓴다.
     const loadToken = () => { try { return localStorage.getItem(TOKEN_KEY) || ""; } catch { return ""; } };
@@ -143,6 +163,7 @@ const config = {
       const out = [];
       for (const k of ["title", "description", "date", "category"]) if (!d.meta[k]) out.push(`${k} 없음`);
       if (d.meta.category && !categoryOf(d.meta.category)) out.push(`카테고리 ${d.meta.category} 없음`);
+      if (d.meta.project && !projects.some((x) => x.slug === d.meta.project)) out.push(`프로젝트 ${d.meta.project} 없음`);
       if (!/^\d{4}-\d{2}-\d{2}/.test(String(d.meta.date || ""))) out.push("날짜 형식");
       return out;
     }
@@ -204,7 +225,10 @@ const config = {
           <button type="button" class="admin-item"><span class="admin-date"></span><b></b><small></small></button>`;
         li.querySelector(".admin-date").textContent = String(d.meta.date || "").slice(0, 10);
         li.querySelector("b").textContent = d.meta.title || d.name;
-        li.querySelector("small").textContent = bad.length ? `공개 불가: ${bad.join(", ")}` : `${labelOf(d)} · ${(d.meta.tags || []).join(", ")}`;
+        const pr = projects.find((x) => x.slug === d.meta.project);
+        li.querySelector("small").textContent = bad.length
+          ? `공개 불가: ${bad.join(", ")}`
+          : `${labelOf(d)}${pr ? ` · ${d.meta.kind === "overview" ? "소개 " : ""}[${pr.name}]` : ""} · ${(d.meta.tags || []).join(", ")}`;
         li.querySelector(".admin-item").addEventListener("click", () => showPreview(d));
         list.appendChild(li);
       }
@@ -229,6 +253,19 @@ const config = {
       p.innerHTML = `<div class="meta"></div><h2 class="admin-title"></h2><p class="post-desc"></p>
         <div class="admin-row admin-cats"><label>카테고리 <select data-f="category"></select></label>
         <label>하위 <select data-f="sub"></select></label></div>
+        <div class="admin-row admin-cats"><label>프로젝트 <select data-f="project"></select></label>
+        <label>종류 <select data-f="kind"><option value="log">일지</option><option value="overview">프로젝트 소개</option></select></label></div>
+        <form class="admin-newproj" hidden>
+          <b>새 프로젝트</b>
+          <input name="name" placeholder="이름 (예: 분석 컨테이너 watcher)" required>
+          <input name="slug" placeholder="주소용 영문 (예: analysis-watcher)" pattern="[a-z0-9-]+" required>
+          <input name="summary" placeholder="한 줄 소개" required>
+          <input name="period" placeholder="기간 (예: 2026.02 ~ 2026.05)">
+          <input name="stack" placeholder="기술 (쉼표로: Python, RabbitMQ, Docker)">
+          <select name="status"><option>진행 중</option><option>완료</option><option>중단</option></select>
+          <input name="repo" placeholder="공개 저장소 이름 (없으면 비움)">
+          <span class="admin-row"><button class="btn" type="submit">만들기</button><button class="btn ghost" type="button" data-act="cancel">취소</button></span>
+        </form>
         <div class="admin-row"><button class="btn" data-act="publish" type="button">이 글 공개</button>
         <button class="btn ghost" data-act="discard" type="button">버리기</button>
         <a class="btn ghost" target="_blank" rel="noopener">GitHub 에서 고치기</a></div><div class="prose"></div>`;
@@ -260,6 +297,61 @@ const config = {
       subSel.addEventListener("change", onChange);
       // 처음 열 때도 추천 하위 카테고리를 글에 적어 둔다(공개 후 분류가 바뀌지 않게)
       applyCategory(d, catSel.value, subSel.value);
+
+      // 프로젝트·글 종류 선택. "새 프로젝트…" 를 고르면 아래 양식이 열린다
+      const projSel = p.querySelector('[data-f="project"]');
+      const kindSel = p.querySelector('[data-f="kind"]');
+      const form = p.querySelector(".admin-newproj");
+      const fillProjects = () => {
+        projSel.innerHTML = "";
+        projSel.add(new Option("(없음)", ""));
+        for (const pr of projects) projSel.add(new Option(pr.name, pr.slug));
+        projSel.add(new Option("+ 새 프로젝트…", "__new"));
+        projSel.value = projects.some((pr) => pr.slug === d.meta.project) ? d.meta.project : "";
+      };
+      fillProjects();
+      kindSel.value = d.meta.kind === "overview" ? "overview" : "log";
+      kindSel.disabled = !projSel.value;
+      const applyProject = () => {
+        d.text = setFrontmatter(d.text, "project", projSel.value || null);
+        d.text = setFrontmatter(d.text, "kind", projSel.value && kindSel.value === "overview" ? "overview" : null);
+        Object.assign(d, parseFrontmatter(d.text));
+        kindSel.disabled = !projSel.value;
+        renderList();
+      };
+      projSel.addEventListener("change", () => {
+        if (projSel.value === "__new") { form.hidden = false; return; }
+        form.hidden = true;
+        applyProject();
+      });
+      kindSel.addEventListener("change", applyProject);
+      form.querySelector('[data-act="cancel"]').addEventListener("click", () => {
+        form.hidden = true;
+        fillProjects();
+      });
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const f = new FormData(form);
+        const pr = {
+          slug: String(f.get("slug")).trim(),
+          name: String(f.get("name")).trim(),
+          summary: String(f.get("summary")).trim(),
+          period: String(f.get("period")).trim() || undefined,
+          stack: String(f.get("stack")).split(",").map((s) => s.trim()).filter(Boolean),
+          status: String(f.get("status")),
+          repo: String(f.get("repo")).trim() || undefined,
+        };
+        if (projects.some((x) => x.slug === pr.slug)) { alert("같은 주소의 프로젝트가 이미 있습니다."); return; }
+        try {
+          await saveProjects([...projects, pr], `project: ${pr.slug} 추가`);
+          form.hidden = true;
+          fillProjects();
+          projSel.value = pr.slug;
+          applyProject();
+        } catch (err) {
+          alert(`프로젝트 만들기 실패: ${err.message}`);
+        }
+      });
       p.querySelector(".admin-title").textContent = d.meta.title || d.name;
       p.querySelector(".post-desc").textContent = d.meta.description || "";
       p.querySelector("a").href = `https://github.com/${config.draftRepo}/edit/main/${d.path}`;
@@ -309,6 +401,7 @@ const config = {
         if (user.login.toLowerCase() !== config.owner) throw new Error("다른 계정의 토큰입니다");
         $("login").hidden = true;
         $("panel").hidden = false;
+        await loadProjects();
         await loadDrafts();
       } catch (e) {
         saveToken("");

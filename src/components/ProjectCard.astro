@@ -1,0 +1,26 @@
+---
+// 프로젝트 카드 — 이름, 상태, 기간, 한 줄 소개, 기술 스택, 글 수를 보여 주고 프로젝트 페이지로 이어진다.
+import type { Project } from "../site";
+
+interface Props {
+  project: Project;
+  // 이 프로젝트에 묶인 공개 글 수
+  count: number;
+}
+
+const { project, count } = Astro.props;
+const base = import.meta.env.BASE_URL;
+---
+
+<a class="project-card" href={`${base}projects/${project.slug}/`}>
+  <span class="project-top">
+    <b>{project.name}</b>
+    {project.status && <span class={`status s-${project.status === "완료" ? "done" : project.status === "중단" ? "stop" : "doing"}`}>{project.status}</span>}
+  </span>
+  {project.period && <span class="project-period">{project.period}</span>}
+  <p>{project.summary}</p>
+  <span class="project-foot">
+    <span class="stack">{(project.stack ?? []).slice(0, 5).map((s) => <i>{s}</i>)}</span>
+    <span class="count">글 {count}</span>
+  </span>
+</a>

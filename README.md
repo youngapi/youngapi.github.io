@@ -34,6 +34,15 @@ tags: ["spring", "mysql"]
 
 카테고리를 추가하거나 바꾸려면 `src/data/categories.json` 만 고치면 됩니다. 카테고리마다 `children`(하위 카테고리 slug·이름·자동 분류용 태그 목록)이 있고, 메뉴에 마우스를 올리면 펼쳐집니다. 주소는 `/category/backend/`, `/category/backend/spring/`.
 
+## 프로젝트별 보기
+
+날짜·카테고리·태그로 보는 방식과 함께, 프로젝트별로도 쓰고 볼 수 있습니다.
+
+- **프로젝트 목록**: `src/data/projects.json` (`slug`, `name`, `summary`, `period`, `stack`, `status`, `repo`). 관리 페이지에서 "새 프로젝트…" 로 만들면 이 파일에 커밋됩니다.
+- **글을 프로젝트에 묶기**: frontmatter 에 `project: "<slug>"`. 프로젝트 전체를 정리한 글은 `kind: "overview"` (없으면 날짜별 일지 `log`).
+- **페이지**: `/projects/` 프로젝트 카드 목록, `/projects/<slug>/` 프로젝트 정보·소개 글·작업 기록(오래된 순). 프로젝트에 묶인 글에는 프로젝트 배지와 "프로젝트 안 n/m · 이전/다음" 상자가 붙습니다.
+- 지금 있는 글은 프로젝트로 묶지 않았습니다. 묶을 때는 관리 페이지에서 공개할 때 고르거나, 공개된 글의 frontmatter 에 `project` 를 넣습니다.
+
 ## 화면
 
 - **첫 화면**: 소개와 통계, 최신 글(크게 하나 + 최근 6개), "전체 글 보기", 연·월별 기록 표(잔디 모양, 누르면 그 해 글로 이동), 기술별 카드(하위 카테고리 칩과 글 수), 많이 쓴 태그.
@@ -76,7 +85,7 @@ youngapi 계정에 연결되지 않은 이메일(회사 메일 등)의 커밋도
 3. **마무리** `node scripts/devlog/daily-draft.mjs --finalize .devlog-out/YYYY-MM-DD/draft.json --date YYYY-MM-DD`
    완성된 글을 다시 걸러 내고 글 파일을 만듭니다.
 4. 빌드가 되는지 확인하고 글을 **비공개 보류함 `devlog-data/drafts/`** 에 넣습니다. 이 블로그 저장소(공개)에는 아무것도 올리지 않습니다.
-5. **공개**: [/admin/](https://youngapi.github.io/admin/) 에서 미리 보고, 카테고리·하위 카테고리를 고른 뒤(태그로 추천됨) 골라 공개합니다. 공개하면 글이 `src/content/posts/` 로 한 커밋에 들어가고 보류함에서 빠지며, 1~2분 뒤 배포됩니다.
+5. **공개**: [/admin/](https://youngapi.github.io/admin/) 에서 미리 보고, 카테고리·하위 카테고리(태그로 추천됨)와 프로젝트·글 종류를 고른 뒤 공개합니다. 공개하면 글이 `src/content/posts/` 로 한 커밋에 들어가고 보류함에서 빠지며, 1~2분 뒤 배포됩니다.
 
 글은 기능 나열이 아니라 그 작업에 쓴 기술, 그 기술이 뭔지, 어떻게 썼는지, 무엇이 문제였는지를 개발자 일지 말투로 씁니다([`style-guide.md`](scripts/devlog/style-guide.md)).
 

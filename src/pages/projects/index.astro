@@ -1,0 +1,28 @@
+---
+// 프로젝트 목록 페이지 — src/data/projects.json 의 프로젝트를 진행 중 먼저, 글 많은 순으로 보여 준다.
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ProjectCard from "../../components/ProjectCard.astro";
+import { getPublishedPosts } from "../../lib/posts";
+import { PROJECTS } from "../../site";
+
+const posts = await getPublishedPosts();
+const countOf = (slug: string) => posts.filter((p) => p.data.project === slug).length;
+const projects = [...PROJECTS].sort(
+  (a, b) => Number(b.status === "진행 중") - Number(a.status === "진행 중") || countOf(b.slug) - countOf(a.slug),
+);
+---
+
+<BaseLayout title="프로젝트" description="프로젝트별로 모아 본 작업 기록">
+  <header class="page-head">
+    <p class="eyebrow">Projects</p>
+    <h1 class="page-title">프로젝트</h1>
+    <p class="page-sub">프로젝트마다 소개 글과 작업 기록을 모아 둔다. 날짜·카테고리·태그로 보려면 <a href="/posts/">전체 글</a>.</p>
+  </header>
+  {projects.length === 0 ? (
+    <p class="empty">아직 정리한 프로젝트가 없다.</p>
+  ) : (
+    <div class="project-grid">
+      {projects.map((p) => <ProjectCard project={p} count={countOf(p.slug)} />)}
+    </div>
+  )}
+</BaseLayout>

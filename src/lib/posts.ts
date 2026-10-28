@@ -19,6 +19,15 @@ export function countTags(posts: Post[]): [string, number][] {
   return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
 }
 
+// 한 프로젝트의 글을 오래된 순으로 돌려준다(소개 글 먼저). 프로젝트 페이지와 글의 "프로젝트 안 이전/다음" 이 쓴다.
+export function postsOfProject(posts: Post[], slug: string): Post[] {
+  return posts
+    .filter((p) => p.data.project === slug)
+    .sort((a, b) =>
+      a.data.kind !== b.data.kind ? (a.data.kind === "overview" ? -1 : 1) : a.data.date.getTime() - b.data.date.getTime(),
+    );
+}
+
 // 글의 하위 카테고리(없으면 undefined).
 export function subOf(post: Post) {
   return resolveSubcategory(post.data);

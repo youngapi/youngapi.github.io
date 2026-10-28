@@ -1,5 +1,6 @@
-// 사이트 공통 정보와 기술 카테고리 목록 — 메뉴·페이지·RSS 가 모두 이 값을 쓴다.
+// 사이트 공통 정보, 기술 카테고리 목록, 프로젝트 목록 — 메뉴·페이지·RSS 가 모두 이 값을 쓴다.
 import categoryList from "./data/categories.json";
+import projectList from "./data/projects.json";
 
 export const SITE = {
   title: "youngapi.log",
@@ -40,6 +41,26 @@ export function resolveSubcategory(data: { category: string; subcategory?: strin
     if (score > bestScore) [best, bestScore] = [sub, score];
   }
   return best;
+}
+
+// 프로젝트 하나. 글의 frontmatter `project` 에 slug 를 적으면 그 프로젝트 글로 모인다.
+export interface Project {
+  slug: string;
+  name: string;
+  summary: string;
+  // "2026.02 ~ 2026.05" 처럼 자유 형식
+  period?: string;
+  stack?: string[];
+  status?: "진행 중" | "완료" | "중단";
+  // 공개 저장소 이름(있을 때만 링크)
+  repo?: string;
+}
+
+export const PROJECTS: Project[] = projectList as Project[];
+
+// slug 로 프로젝트를 찾는다. 없으면 undefined.
+export function findProject(slug?: string): Project | undefined {
+  return slug ? PROJECTS.find((p) => p.slug === slug) : undefined;
 }
 
 // 날짜를 "2026년 10월 28일" 형태로 바꾼다.

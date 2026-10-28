@@ -1,0 +1,45 @@
+---
+// 프로젝트 페이지 — 프로젝트 정보(기간·상태·스택·저장소), 소개 글, 작업 기록(오래된 순)을 보여 준다.
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PostList from "../../components/PostList.astro";
+import { getPublishedPosts, postsOfProject } from "../../lib/posts";
+import { PROJECTS, SITE, type Project } from "../../site";
+
+// 프로젝트마다 페이지를 하나씩 만든다.
+export function getStaticPaths() {
+  return PROJECTS.map((project) => ({ params: { slug: project.slug }, props: { project } }));
+}
+
+const { project } = Astro.props as { project: Project };
+const all = postsOfProject(await getPublishedPosts(), project.slug);
+const overviews = all.filter((p) => p.data.kind === "overview");
+const logs = all.filter((p) => p.data.kind !== "overview");
+---
+
+<BaseLayout title={project.name} description={project.summary}>
+  <header class="page-head">
+    <p class="eyebrow">Project{project.status ? ` · ${project.status}` : ""}</p>
+    <h1 class="page-title">{project.name}</h1>
+    <p class="page-sub">{project.summary}</p>
+    <dl class="project-facts">
+      {project.period && <div><dt>기간</dt><dd>{project.period}</dd></div>}
+      <div><dt>글</dt><dd>{all.length}</dd></div>
+      {project.repo && <div><dt>저장소</dt><dd><a href={`${SITE.github}/${project.repo}`}>{project.repo}</a></dd></div>}
+    </dl>
+    {(project.stack ?? []).length > 0 && (
+      <div class="stack big">{project.stack!.map((s) => <i>{s}</i>)}</div>
+    )}
+  </header>
+
+  {overviews.length > 0 && (
+    <section>
+      <h2 class="section-title">소개</h2>
+      <PostList posts={overviews} />
+    </section>
+  )}
+
+  <section>
+    <h2 class="section-title">작업 기록 <span class="count">{logs.length}</span></h2>
+    <PostList posts={logs} />
+  </section>
+</BaseLayout>

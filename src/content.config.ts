@@ -15,6 +15,10 @@ const posts = defineCollection({
     category: z.enum(categorySlugs),
     // 하위 카테고리 slug. 비우면 태그로 자동으로 정한다(site.ts resolveSubcategory)
     subcategory: z.string().optional(),
+    // 프로젝트 slug(src/data/projects.json). 비우면 프로젝트에 묶이지 않은 일반 일지
+    project: z.string().optional(),
+    // 글 종류: log = 날짜별 작업 일지, overview = 프로젝트 소개·정리 글(프로젝트 페이지 맨 위에 나온다)
+    kind: z.enum(["log", "overview"]).default("log"),
     tags: z.array(z.string()).default([]),
     // 작업한 repo 이름 — 매일 기록 글에서 채운다
     repos: z.array(z.string()).default([]),

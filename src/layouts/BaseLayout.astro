@@ -57,6 +57,7 @@ const path = Astro.url.pathname;
           </a>
           <nav class="top-links" aria-label="주요 메뉴">
             <a href={`${base}posts/`} aria-current={path.startsWith(`${base}posts`) ? "page" : undefined}>글</a>
+            <a href={`${base}projects/`} aria-current={path.startsWith(`${base}projects`) ? "page" : undefined}>프로젝트</a>
             <a href={`${base}tags/`} aria-current={path.startsWith(`${base}tags`) ? "page" : undefined}>태그</a>
             <a href={`${base}about/`} aria-current={path.startsWith(`${base}about`) ? "page" : undefined}>소개</a>
             <a href={`${base}admin/`} id="admin-link" class="admin-link" hidden aria-current={path.startsWith(`${base}admin`) ? "page" : undefined}>관리</a>
