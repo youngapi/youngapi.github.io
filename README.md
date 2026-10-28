@@ -1,6 +1,6 @@
 # youngapi.github.io
 
-[youngapi.log](https://youngapi.github.io) — Astro 로 만든 개발 블로그입니다. 매일 GitHub 작업 내역으로 개발 기록 초안이 PR 로 올라옵니다.
+[youngapi.log](https://youngapi.github.io) — Astro 로 만든 개발 블로그입니다. 매일 GitHub 작업 내역으로 개발 일지 초안이 비공개 보류함에 쌓이고, [/admin/](https://youngapi.github.io/admin/) 에서 골라 공개합니다.
 
 ## 구조
 
@@ -54,7 +54,7 @@ npm run dev
 | 단계 | 누가 | 언제 |
 |---|---|---|
 | 수집 | 비공개 저장소 [youngapi/devlog-data](https://github.com/youngapi/devlog-data) 의 Actions | 매일 08:00 KST, 최근 3일 |
-| 글쓰기·PR | Claude Code 클라우드 루틴 "youngapi 블로그 매일 개발 일지 초안" ([claude.ai/code/routines](https://claude.ai/code/routines)) | 매일 09:00 KST |
+| 글쓰기 → 보류함 | Claude Code 클라우드 루틴 "youngapi 블로그 매일 개발 일지 초안" ([claude.ai/code/routines](https://claude.ai/code/routines)) | 매일 09:00 KST |
 
 클라우드 루틴은 Claude 구독 안에서 돌고, Claude GitHub 앱을 설치한 저장소(이 저장소와 devlog-data)에만 묶여 있어서 다른 저장소의 커밋을 직접 못 읽습니다. 그래서 수집은 devlog-data 의 Actions 가 하고 결과를 그 저장소의 `activity/YYYY-MM-DD.json`(작업 없는 날은 `.none`)에 둡니다. 루틴은 그 파일로 글만 씁니다.
 
@@ -66,8 +66,24 @@ youngapi 계정에 연결되지 않은 이메일(회사 메일 등)의 커밋도
    `youngapi` 의 저장소에 그날 올라온 커밋을 모든 브랜치에서 모읍니다. 커밋 메시지와 바뀐 파일 목록만 쓰고 **코드 내용은 가져오지 않습니다.** 키·토큰·이메일·IP·URL·DB 접속 문자열·`.env` 같은 파일과 지정한 단어를 지운 뒤 devlog-data 저장소에 저장합니다.
 2. **글쓰기** 클라우드 루틴이 activity 파일을 꺼내 [`scripts/devlog/style-guide.md`](scripts/devlog/style-guide.md) 규칙(반말 일지체, AI 티 나는 표현 금지, 지어내지 않기)대로 `draft.json` 을 씁니다.
 3. **마무리** `node scripts/devlog/daily-draft.mjs --finalize .devlog-out/YYYY-MM-DD/draft.json --date YYYY-MM-DD`
-   완성된 글을 다시 걸러 내고 `src/content/posts/devlog-YYYY-MM-DD.md` 와 PR 설명을 만듭니다.
-4. 빌드가 되는지 확인하고 `devlog/YYYY-MM-DD` 브랜치로 PR 을 올립니다. **머지해야 게시됩니다.**
+   완성된 글을 다시 걸러 내고 글 파일을 만듭니다.
+4. 빌드가 되는지 확인하고 글을 **비공개 보류함 `devlog-data/drafts/`** 에 넣습니다. 이 블로그 저장소(공개)에는 아무것도 올리지 않습니다.
+5. **공개**: [/admin/](https://youngapi.github.io/admin/) 에서 미리 보고 골라 공개합니다. 공개하면 글이 `src/content/posts/` 로 한 커밋에 들어가고 보류함에서 빠지며, 1~2분 뒤 배포됩니다.
+
+글은 기능 나열이 아니라 그 작업에 쓴 기술, 그 기술이 뭔지, 어떻게 썼는지, 무엇이 문제였는지를 개발자 일지 말투로 씁니다([`style-guide.md`](scripts/devlog/style-guide.md)).
+
+### 관리 페이지 `/admin/`
+
+서버가 없어서 GitHub 토큰으로 권한을 확인합니다.
+
+- youngapi 계정의 fine-grained 토큰을 브라우저에서 한 번 넣습니다. 저장소는 `youngapi.github.io`·`devlog-data` 두 개, 권한은 **Contents: Read and write**.
+- 페이지가 `GET /user` 로 토큰 주인이 youngapi 인지 확인하고 그때만 화면을 엽니다. 보류 글은 비공개 저장소에 있어서 다른 사람은 토큰이 없으면 읽을 수 없습니다.
+- 토큰은 그 브라우저 `localStorage` 에만 두고 GitHub API 말고는 어디에도 보내지 않습니다. 기기·브라우저마다 한 번씩 넣어야 합니다.
+- `/admin/` 은 noindex 이고 사이트맵·robots 에서 뺐습니다.
+
+### 지난 작업 글
+
+2022~2026 년 youngapi 저장소의 지난 커밋도 같은 규칙으로 저장소·기간별로 묶어 글을 써서 보류함에 넣었습니다. 회사·고객·제품 이름은 가렸고, 조직(회사·팀) 저장소는 넣지 않았습니다.
 
 ### 로컬에서 돌릴 때 개인 설정 `devlog.local.json` (저장소에 올라가지 않음)
 
