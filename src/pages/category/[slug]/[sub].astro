@@ -1,0 +1,29 @@
+---
+// 하위 카테고리 글 목록 페이지 — /category/backend/spring/ 처럼 2단계 카테고리의 글만 보여 준다.
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import PostList from "../../../components/PostList.astro";
+import SubNav from "../../../components/SubNav.astro";
+import { getPublishedPosts, subOf } from "../../../lib/posts";
+import { CATEGORIES, type Category, type Subcategory } from "../../../site";
+
+// 모든 카테고리의 하위 카테고리마다 페이지를 하나씩 만든다(글이 없어도 만든다).
+export function getStaticPaths() {
+  return CATEGORIES.flatMap((category) =>
+    category.children.map((sub) => ({ params: { slug: category.slug, sub: sub.slug }, props: { category, sub } })),
+  );
+}
+
+const { category, sub } = Astro.props as { category: Category; sub: Subcategory };
+const inCategory = (await getPublishedPosts()).filter((p) => p.data.category === category.slug);
+const posts = inCategory.filter((p) => subOf(p)?.slug === sub.slug);
+---
+
+<BaseLayout title={`${sub.name} · ${category.name}`} description={`${category.name} > ${sub.name} 글 목록`} activeCategory={category.slug}>
+  <header class="page-head cat-head" style={`--cat:${category.color}`}>
+    <p class="eyebrow"><i class="dot"></i>{category.name}</p>
+    <h1 class="page-title">{sub.name}</h1>
+    <p class="page-sub">글 {posts.length}개</p>
+  </header>
+  <SubNav category={category} posts={inCategory} active={sub.slug} />
+  <PostList posts={posts} hideCategory />
+</BaseLayout>

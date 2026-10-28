@@ -19,12 +19,27 @@ export const SITE = {
 };
 
 export type Category = (typeof categoryList)[number];
+export type Subcategory = Category["children"][number];
 
 export const CATEGORIES: Category[] = categoryList;
 
 // slug 로 카테고리를 찾는다. 없으면 "기타" 를 돌려준다.
 export function findCategory(slug: string): Category {
   return CATEGORIES.find((c) => c.slug === slug) ?? CATEGORIES[CATEGORIES.length - 1];
+}
+
+// 글의 하위 카테고리를 정한다. frontmatter 의 subcategory 가 있으면 그것을,
+// 없으면 태그가 가장 많이 겹치는 하위 카테고리를 고른다(같으면 앞에 있는 것). 아무것도 안 맞으면 undefined.
+export function resolveSubcategory(data: { category: string; subcategory?: string; tags: string[] }): Subcategory | undefined {
+  const category = findCategory(data.category);
+  if (data.subcategory) return category.children.find((s) => s.slug === data.subcategory);
+  let best: Subcategory | undefined;
+  let bestScore = 0;
+  for (const sub of category.children) {
+    const score = sub.tags.filter((t) => data.tags.includes(t)).length;
+    if (score > bestScore) [best, bestScore] = [sub, score];
+  }
+  return best;
 }
 
 // 날짜를 "2026년 10월 28일" 형태로 바꾼다.

@@ -19,7 +19,7 @@ for (const post of posts) {
     <p class="page-sub">글 {posts.length}개</p>
   </header>
   {[...byYear.entries()].map(([year, list]) => (
-    <section>
+    <section id={`y${year}`}>
       <h2 class="section-title">{year} <span class="count">{list.length}</span></h2>
       <PostList posts={list} />
     </section>

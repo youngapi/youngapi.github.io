@@ -1,5 +1,6 @@
 ---
-// 관리 페이지 — 비공개 저장소(devlog-data/drafts)에 보류된 글을 미리 보고, 골라서 블로그에 공개하거나 버린다.
+// 관리 페이지 — 비공개 저장소(devlog-data/drafts)에 보류된 글을 미리 보고, 카테고리·하위 카테고리를 정해
+// 골라서 블로그에 공개하거나 버린다.
 // 서버가 없으므로 사용자가 브라우저에 넣은 GitHub fine-grained 토큰으로 GitHub API 를 직접 부른다.
 // 토큰 주인이 youngapi 일 때만 화면을 연다. 토큰은 이 브라우저 localStorage 에만 둔다.
 import BaseLayout from "../layouts/BaseLayout.astro";
@@ -11,7 +12,11 @@ const config = {
   draftRepo: "youngapi/devlog-data",
   draftDir: "drafts",
   postDir: "src/content/posts",
-  categories: CATEGORIES.map((c) => c.slug),
+  categories: CATEGORIES.map((c) => ({
+    slug: c.slug,
+    name: c.name,
+    children: c.children.map((s) => ({ slug: s.slug, name: s.name, tags: s.tags })),
+  })),
 };
 ---
 
@@ -89,11 +94,55 @@ const config = {
       return { meta, body: m[2] };
     }
 
+    // frontmatter 의 한 줄을 바꾼다. value 가 null 이면 그 줄을 지우고, 없던 키면 닫는 --- 앞에 넣는다.
+    function setFrontmatter(text, key, value) {
+      const m = text.match(/^(---\r?\n)([\s\S]*?)(\r?\n---)/);
+      if (!m) return text;
+      const lines = m[2].split(/\r?\n/).filter((l) => !l.startsWith(`${key}:`));
+      if (value !== null) {
+        const at = Math.max(0, lines.findIndex((l) => l.startsWith("tags:")));
+        lines.splice(at, 0, `${key}: ${JSON.stringify(value)}`);
+      }
+      return m[1] + lines.join("\n") + m[3] + text.slice(m[0].length);
+    }
+
+    // 카테고리 slug 로 정보를 찾는다.
+    const categoryOf = (slug) => config.categories.find((c) => c.slug === slug);
+
+    // 태그로 하위 카테고리를 추천한다(블로그의 자동 분류와 같은 규칙).
+    function suggestSub(d) {
+      const c = categoryOf(d.meta.category);
+      if (!c) return null;
+      if (d.meta.subcategory && c.children.some((s) => s.slug === d.meta.subcategory)) return d.meta.subcategory;
+      let best = null;
+      let bestScore = 0;
+      for (const s of c.children) {
+        const score = s.tags.filter((t) => (d.meta.tags || []).includes(t)).length;
+        if (score > bestScore) [best, bestScore] = [s.slug, score];
+      }
+      return best;
+    }
+
+    // 목록·미리 보기에 보일 "백엔드 · Spring" 같은 이름.
+    function labelOf(d) {
+      const c = categoryOf(d.meta.category);
+      if (!c) return d.meta.category || "카테고리 없음";
+      const s = c.children.find((x) => x.slug === suggestSub(d));
+      return s ? `${c.name} · ${s.name}` : c.name;
+    }
+
+    // 미리 보기에서 고른 카테고리·하위 카테고리를 글 본문(frontmatter)에 반영한다.
+    function applyCategory(d, category, sub) {
+      d.text = setFrontmatter(d.text, "category", category);
+      d.text = setFrontmatter(d.text, "subcategory", sub || null);
+      Object.assign(d, parseFrontmatter(d.text));
+    }
+
     // 공개해도 되는 글인지 확인한다. 빌드가 깨지는 글은 공개하지 않는다.
     function problems(d) {
       const out = [];
       for (const k of ["title", "description", "date", "category"]) if (!d.meta[k]) out.push(`${k} 없음`);
-      if (d.meta.category && !config.categories.includes(d.meta.category)) out.push(`카테고리 ${d.meta.category} 없음`);
+      if (d.meta.category && !categoryOf(d.meta.category)) out.push(`카테고리 ${d.meta.category} 없음`);
       if (!/^\d{4}-\d{2}-\d{2}/.test(String(d.meta.date || ""))) out.push("날짜 형식");
       return out;
     }
@@ -144,17 +193,18 @@ const config = {
 
     // 왼쪽 목록을 그린다.
     function renderList() {
+      const keep = new Set(selected()); // 다시 그려도 체크한 글은 그대로 둔다
       const list = $("draft-list");
       list.innerHTML = "";
       if (!drafts.length) list.innerHTML = '<li class="empty">보류 글이 없습니다.</li>';
       for (const d of drafts) {
         const li = document.createElement("li");
         const bad = problems(d);
-        li.innerHTML = `<label><input type="checkbox" data-name="${d.name}" ${bad.length ? "disabled" : ""}></label>
+        li.innerHTML = `<label><input type="checkbox" data-name="${d.name}" ${bad.length ? "disabled" : ""} ${keep.has(d.name) && !bad.length ? "checked" : ""}></label>
           <button type="button" class="admin-item"><span class="admin-date"></span><b></b><small></small></button>`;
         li.querySelector(".admin-date").textContent = String(d.meta.date || "").slice(0, 10);
         li.querySelector("b").textContent = d.meta.title || d.name;
-        li.querySelector("small").textContent = bad.length ? `공개 불가: ${bad.join(", ")}` : `${d.meta.category} · ${(d.meta.tags || []).join(", ")}`;
+        li.querySelector("small").textContent = bad.length ? `공개 불가: ${bad.join(", ")}` : `${labelOf(d)} · ${(d.meta.tags || []).join(", ")}`;
         li.querySelector(".admin-item").addEventListener("click", () => showPreview(d));
         list.appendChild(li);
       }
@@ -177,10 +227,39 @@ const config = {
     function showPreview(d) {
       const p = $("preview");
       p.innerHTML = `<div class="meta"></div><h2 class="admin-title"></h2><p class="post-desc"></p>
+        <div class="admin-row admin-cats"><label>카테고리 <select data-f="category"></select></label>
+        <label>하위 <select data-f="sub"></select></label></div>
         <div class="admin-row"><button class="btn" data-act="publish" type="button">이 글 공개</button>
         <button class="btn ghost" data-act="discard" type="button">버리기</button>
         <a class="btn ghost" target="_blank" rel="noopener">GitHub 에서 고치기</a></div><div class="prose"></div>`;
-      p.querySelector(".meta").textContent = `${String(d.meta.date).slice(0, 10)} · ${d.meta.category} · ${(d.meta.tags || []).join(", ")}`;
+      p.querySelector(".meta").textContent = `${String(d.meta.date).slice(0, 10)} · ${(d.meta.tags || []).join(", ")}`;
+
+      // 카테고리·하위 카테고리 선택 상자. 바꾸면 바로 글 frontmatter 에 반영되고, 공개할 때 그 값으로 올라간다
+      const catSel = p.querySelector('[data-f="category"]');
+      const subSel = p.querySelector('[data-f="sub"]');
+      for (const c of config.categories) catSel.add(new Option(c.name, c.slug));
+      catSel.value = categoryOf(d.meta.category) ? d.meta.category : "etc";
+      const fillSubs = () => {
+        subSel.innerHTML = "";
+        subSel.add(new Option("(없음)", ""));
+        for (const s of categoryOf(catSel.value)?.children ?? []) subSel.add(new Option(s.name, s.slug));
+      };
+      fillSubs();
+      subSel.value = suggestSub(d) ?? "";
+      const onChange = () => {
+        applyCategory(d, catSel.value, subSel.value);
+        renderList();
+      };
+      catSel.addEventListener("change", () => {
+        fillSubs();
+        d.meta.category = catSel.value;
+        d.meta.subcategory = undefined;
+        subSel.value = suggestSub(d) ?? "";
+        onChange();
+      });
+      subSel.addEventListener("change", onChange);
+      // 처음 열 때도 추천 하위 카테고리를 글에 적어 둔다(공개 후 분류가 바뀌지 않게)
+      applyCategory(d, catSel.value, subSel.value);
       p.querySelector(".admin-title").textContent = d.meta.title || d.name;
       p.querySelector(".post-desc").textContent = d.meta.description || "";
       p.querySelector("a").href = `https://github.com/${config.draftRepo}/edit/main/${d.path}`;

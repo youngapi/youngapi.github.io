@@ -4,6 +4,78 @@
     "name": "백엔드",
     "description": "Java, Spring, API 만들면서 겪은 것들",
     "color": "#3b6ef5",
+    "children": [
+      {
+        "slug": "messaging",
+        "name": "메시징·이벤트",
+        "tags": [
+          "kafka",
+          "aiokafka",
+          "rabbitmq",
+          "pika",
+          "amqp",
+          "spring-amqp",
+          "nats",
+          "aio-pika",
+          "webhook",
+          "mqtt"
+        ]
+      },
+      {
+        "slug": "spring",
+        "name": "Spring",
+        "tags": [
+          "spring-boot",
+          "spring-mvc",
+          "spring-security",
+          "spring-data-redis",
+          "jsp",
+          "jstl",
+          "tiles",
+          "apache-tiles",
+          "resttemplate",
+          "bean-validation",
+          "lombok",
+          "java",
+          "java-reflection",
+          "war",
+          "tomcat",
+          "logback",
+          "jackson",
+          "gson",
+          "stomp"
+        ]
+      },
+      {
+        "slug": "python",
+        "name": "Python",
+        "tags": [
+          "python",
+          "fastapi",
+          "flask",
+          "asyncio",
+          "pyqt5",
+          "pymysql",
+          "apscheduler",
+          "websockets",
+          "aiodocker",
+          "asyncpg",
+          "multiprocessing",
+          "psutil",
+          "pywin32"
+        ]
+      },
+      {
+        "slug": "node",
+        "name": "Node.js",
+        "tags": [
+          "node",
+          "express",
+          "socket-io",
+          "http-proxy-middleware"
+        ]
+      }
+    ],
     "extensions": [
       "java",
       "kt",
@@ -32,6 +104,39 @@
     "name": "프론트엔드",
     "description": "Vue, Nuxt, React, 화면 작업",
     "color": "#8b5cf6",
+    "children": [
+      {
+        "slug": "vue",
+        "name": "Vue",
+        "tags": [
+          "vue",
+          "nuxt",
+          "pinia",
+          "vite"
+        ]
+      },
+      {
+        "slug": "react",
+        "name": "React",
+        "tags": [
+          "react",
+          "next"
+        ]
+      },
+      {
+        "slug": "web",
+        "name": "웹 기본",
+        "tags": [
+          "javascript",
+          "jquery",
+          "html",
+          "css",
+          "localforage",
+          "i18n",
+          "swagger"
+        ]
+      }
+    ],
     "extensions": [
       "vue",
       "tsx",
@@ -56,6 +161,30 @@
     "name": "모바일",
     "description": "Android, iOS, 하이브리드 앱",
     "color": "#10a37f",
+    "children": [
+      {
+        "slug": "android",
+        "name": "Android",
+        "tags": [
+          "android",
+          "kotlin",
+          "camerax",
+          "camera2",
+          "mediacodec",
+          "foreground-service",
+          "okhttp",
+          "onnxruntime"
+        ]
+      },
+      {
+        "slug": "ios",
+        "name": "iOS",
+        "tags": [
+          "ios",
+          "swift"
+        ]
+      }
+    ],
     "extensions": [
       "swift",
       "dart",
@@ -77,6 +206,40 @@
     "name": "인프라·DevOps",
     "description": "Docker, CI/CD, 클라우드, 서버 설정",
     "color": "#e8890c",
+    "children": [
+      {
+        "slug": "docker",
+        "name": "Docker",
+        "tags": [
+          "docker",
+          "docker-compose",
+          "dockerfile",
+          "kubernetes"
+        ]
+      },
+      {
+        "slug": "cicd",
+        "name": "CI/CD",
+        "tags": [
+          "github-actions",
+          "ssh",
+          "github-pages",
+          "jenkins"
+        ]
+      },
+      {
+        "slug": "cloud",
+        "name": "클라우드·서버",
+        "tags": [
+          "aws-ec2",
+          "aws-s3",
+          "aws",
+          "nginx",
+          "linux",
+          "ftp"
+        ]
+      }
+    ],
     "extensions": [
       "yml",
       "yaml",
@@ -103,6 +266,39 @@
     "name": "데이터베이스",
     "description": "SQL, 스키마, Redis",
     "color": "#0e9fa8",
+    "children": [
+      {
+        "slug": "rdb",
+        "name": "MySQL·MariaDB",
+        "tags": [
+          "mysql",
+          "mariadb",
+          "mybatis",
+          "pymysql",
+          "hikaricp",
+          "log4jdbc",
+          "erd",
+          "sql",
+          "asyncpg"
+        ]
+      },
+      {
+        "slug": "redis",
+        "name": "Redis",
+        "tags": [
+          "redis",
+          "spring-data-redis",
+          "lettuce"
+        ]
+      },
+      {
+        "slug": "nosql",
+        "name": "NoSQL",
+        "tags": [
+          "mongodb"
+        ]
+      }
+    ],
     "extensions": [
       "sql",
       "prisma"
@@ -122,6 +318,49 @@
     "name": "AI·데이터",
     "description": "LLM, RAG, 데이터 처리",
     "color": "#e0457b",
+    "children": [
+      {
+        "slug": "vision",
+        "name": "영상·비전",
+        "tags": [
+          "opencv",
+          "ffmpeg",
+          "yolo",
+          "onnxruntime",
+          "scikit-image",
+          "rtsp",
+          "vlc",
+          "pillow"
+        ]
+      },
+      {
+        "slug": "gis",
+        "name": "GIS·지도",
+        "tags": [
+          "gis",
+          "cesium",
+          "rasterio",
+          "cog",
+          "gdal",
+          "mbtiles",
+          "tileserver-gl",
+          "vworld",
+          "dem"
+        ]
+      },
+      {
+        "slug": "llm",
+        "name": "LLM",
+        "tags": [
+          "llm",
+          "rag",
+          "claude",
+          "claude-code",
+          "gemini",
+          "openai"
+        ]
+      }
+    ],
     "extensions": [
       "ipynb"
     ],
@@ -142,6 +381,30 @@
     "name": "기타",
     "description": "도구, 문서, 그 밖의 이야기",
     "color": "#6b7280",
+    "children": [
+      {
+        "slug": "blog",
+        "name": "블로그",
+        "tags": [
+          "astro",
+          "github-pages",
+          "github-api",
+          "claude-code"
+        ]
+      },
+      {
+        "slug": "tools",
+        "name": "도구",
+        "tags": [
+          "openpyxl",
+          "pyinstaller",
+          "exiftool",
+          "yaml",
+          "dotenv",
+          "crestron"
+        ]
+      }
+    ],
     "extensions": [
       "md",
       "txt"

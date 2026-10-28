@@ -1,6 +1,6 @@
 ---
-// 글 목록 한 묶음을 그리는 컴포넌트 — 왼쪽에 날짜, 오른쪽에 카테고리·제목·요약·태그·읽는 시간을 보여 준다.
-import { readingMinutes, type Post } from "../lib/posts";
+// 글 목록 한 묶음을 그리는 컴포넌트 — 왼쪽에 날짜, 오른쪽에 카테고리(·하위)·제목·요약·태그·읽는 시간을 보여 준다.
+import { readingMinutes, subOf, type Post } from "../lib/posts";
 import { findCategory } from "../site";
 
 interface Props {
@@ -27,6 +27,7 @@ function dateParts(date: Date) {
   <ul class="post-list">
     {posts.map((post) => {
       const category = findCategory(post.data.category);
+      const sub = subOf(post);
       const { day, year } = dateParts(post.data.date);
       return (
         <li class="post-row" style={`--cat:${category.color}`}>
@@ -35,8 +36,10 @@ function dateParts(date: Date) {
             <span>{year}</span>
           </time>
           <div class="post-main">
-            {!hideCategory && (
-              <a class="badge" href={`${base}category/${category.slug}/`}><i class="dot"></i>{category.name}</a>
+            {(!hideCategory || sub) && (
+              <a class="badge" href={sub ? `${base}category/${category.slug}/${sub.slug}/` : `${base}category/${category.slug}/`}>
+                <i class="dot"></i>{hideCategory ? sub!.name : sub ? `${category.name} · ${sub.name}` : category.name}
+              </a>
             )}
             <h3><a href={`${base}posts/${post.id}/`}>{post.data.title}</a></h3>
             <p>{post.data.description}</p>

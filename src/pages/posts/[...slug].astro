@@ -2,7 +2,7 @@
 // 글 상세 페이지 — 머리(카테고리·제목·날짜·읽는 시간·태그), 본문, 넓은 화면의 목차, 작업한 repo, 이전/다음 글.
 import { render } from "astro:content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { getPublishedPosts, readingMinutes, type Post } from "../../lib/posts";
+import { getPublishedPosts, readingMinutes, subOf, type Post } from "../../lib/posts";
 import { findCategory, formatDate, SITE } from "../../site";
 
 // 공개된 글마다 페이지를 하나씩 만들고, 앞뒤 글을 함께 넘긴다.
@@ -18,6 +18,7 @@ const { post, newer, older } = Astro.props as { post: Post; newer: Post | null; 
 const { Content, headings } = await render(post);
 const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
 const category = findCategory(post.data.category);
+const sub = subOf(post);
 const base = import.meta.env.BASE_URL;
 ---
 
@@ -26,12 +27,15 @@ const base = import.meta.env.BASE_URL;
   description={post.data.description}
   activeCategory={category.slug}
   width="wide"
-  seo={{ type: "article", publishedTime: post.data.date, headline: post.data.title, section: category.name, tags: post.data.tags }}
+  seo={{ type: "article", publishedTime: post.data.date, headline: post.data.title, section: sub ? `${category.name} > ${sub.name}` : category.name, tags: post.data.tags }}
 >
   <div class="post-layout" style={`--cat:${category.color}`}>
     <article class="post">
       <header class="post-head">
-        <a class="badge" href={`${base}category/${category.slug}/`}><i class="dot"></i>{category.name}</a>
+        <div class="crumbs">
+          <a class="badge" href={`${base}category/${category.slug}/`}><i class="dot"></i>{category.name}</a>
+          {sub && <a class="badge sub" href={`${base}category/${category.slug}/${sub.slug}/`}>{sub.name}</a>}
+        </div>
         <h1>{post.data.title}</h1>
         <p class="post-desc">{post.data.description}</p>
         <div class="meta">

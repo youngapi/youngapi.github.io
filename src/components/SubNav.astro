@@ -1,0 +1,31 @@
+---
+// 카테고리 페이지 위의 하위 카테고리 칩 — "전체" 와 하위 카테고리별 글 수를 보여 주고 지금 보는 칸을 강조한다.
+import type { Post } from "../lib/posts";
+import { subOf } from "../lib/posts";
+import type { Category } from "../site";
+
+interface Props {
+  category: Category;
+  // 이 카테고리에 속한 공개 글 전체
+  posts: Post[];
+  // 지금 보는 하위 카테고리 slug (없으면 "전체")
+  active?: string;
+}
+
+const { category, posts, active } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const countOf = (slug: string) => posts.filter((p) => subOf(p)?.slug === slug).length;
+---
+
+{category.children.length > 0 && (
+  <nav class="sub-nav" aria-label={`${category.name} 하위 카테고리`} style={`--cat:${category.color}`}>
+    <a href={`${base}category/${category.slug}/`} aria-current={!active ? "page" : undefined}>
+      전체 <span>{posts.length}</span>
+    </a>
+    {category.children.map((s) => (
+      <a href={`${base}category/${category.slug}/${s.slug}/`} aria-current={active === s.slug ? "page" : undefined}>
+        {s.name} <span>{countOf(s.slug)}</span>
+      </a>
+    ))}
+  </nav>
+)}

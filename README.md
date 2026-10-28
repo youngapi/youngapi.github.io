@@ -30,7 +30,15 @@ tags: ["spring", "mysql"]
 ---
 ```
 
-카테고리를 추가하거나 바꾸려면 `src/data/categories.json` 만 고치면 됩니다.
+`subcategory: "spring"` 처럼 하위 카테고리를 적을 수 있습니다. 비워 두면 태그가 가장 많이 겹치는 하위 카테고리로 자동 분류됩니다.
+
+카테고리를 추가하거나 바꾸려면 `src/data/categories.json` 만 고치면 됩니다. 카테고리마다 `children`(하위 카테고리 slug·이름·자동 분류용 태그 목록)이 있고, 메뉴에 마우스를 올리면 펼쳐집니다. 주소는 `/category/backend/`, `/category/backend/spring/`.
+
+## 화면
+
+- **첫 화면**: 소개와 통계, 최신 글(크게 하나 + 최근 6개), "전체 글 보기", 연·월별 기록 표(잔디 모양, 누르면 그 해 글로 이동), 기술별 카드(하위 카테고리 칩과 글 수), 많이 쓴 태그.
+- **카테고리 페이지**: 위에 하위 카테고리 칩(글 수 포함), 그 아래 글 목록.
+- **관리 링크**: 꼬리말의 "관리". 관리 페이지에 로그인한 브라우저에서는 머리말에도 "관리" 가 보입니다.
 
 ## 로컬 실행
 
@@ -68,7 +76,7 @@ youngapi 계정에 연결되지 않은 이메일(회사 메일 등)의 커밋도
 3. **마무리** `node scripts/devlog/daily-draft.mjs --finalize .devlog-out/YYYY-MM-DD/draft.json --date YYYY-MM-DD`
    완성된 글을 다시 걸러 내고 글 파일을 만듭니다.
 4. 빌드가 되는지 확인하고 글을 **비공개 보류함 `devlog-data/drafts/`** 에 넣습니다. 이 블로그 저장소(공개)에는 아무것도 올리지 않습니다.
-5. **공개**: [/admin/](https://youngapi.github.io/admin/) 에서 미리 보고 골라 공개합니다. 공개하면 글이 `src/content/posts/` 로 한 커밋에 들어가고 보류함에서 빠지며, 1~2분 뒤 배포됩니다.
+5. **공개**: [/admin/](https://youngapi.github.io/admin/) 에서 미리 보고, 카테고리·하위 카테고리를 고른 뒤(태그로 추천됨) 골라 공개합니다. 공개하면 글이 `src/content/posts/` 로 한 커밋에 들어가고 보류함에서 빠지며, 1~2분 뒤 배포됩니다.
 
 글은 기능 나열이 아니라 그 작업에 쓴 기술, 그 기술이 뭔지, 어떻게 썼는지, 무엇이 문제였는지를 개발자 일지 말투로 씁니다([`style-guide.md`](scripts/devlog/style-guide.md)).
 

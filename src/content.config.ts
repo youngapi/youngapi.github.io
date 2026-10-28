@@ -13,6 +13,8 @@ const posts = defineCollection({
     description: z.string(),
     date: z.coerce.date(),
     category: z.enum(categorySlugs),
+    // 하위 카테고리 slug. 비우면 태그로 자동으로 정한다(site.ts resolveSubcategory)
+    subcategory: z.string().optional(),
     tags: z.array(z.string()).default([]),
     // 작업한 repo 이름 — 매일 기록 글에서 채운다
     repos: z.array(z.string()).default([]),
