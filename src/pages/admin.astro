@@ -87,8 +87,10 @@ const config = {
     const saveToken = (v) => { try { v ? localStorage.setItem(TOKEN_KEY, v) : localStorage.removeItem(TOKEN_KEY); } catch {} };
 
     // GitHub API 를 부른다. 실패하면 상태 코드를 담아 오류를 낸다.
+    // GitHub 은 GET 응답을 브라우저에 60초 캐시하게 해서, 방금 바뀐 main 을 옛 값으로 읽을 수 있다. 캐시를 쓰지 않는다
     async function gh(path, options = {}) {
       const res = await fetch(path.startsWith("http") ? path : API + path, {
+        cache: "no-store",
         ...options,
         headers: { Accept: "application/vnd.github+json", Authorization: `Bearer ${token}`, ...(options.headers || {}) },
       });
@@ -169,7 +171,20 @@ const config = {
     }
 
     // 여러 파일을 한 커밋으로 올리거나 지운다(content 가 null 이면 삭제). Git Data API 사용.
+    // 그 사이에 main 이 다른 커밋으로 움직이면(422) 최신 main 을 다시 읽어 세 번까지 다시 만든다.
     async function commitFiles(repo, changes, message) {
+      for (let attempt = 1; ; attempt++) {
+        try {
+          return await commitOnce(repo, changes, message);
+        } catch (e) {
+          if (!String(e.message).startsWith("422") || attempt >= 3) throw e;
+          await new Promise((r) => setTimeout(r, 1000 * attempt));
+        }
+      }
+    }
+
+    // main 끝에 커밋 하나를 만들어 붙인다.
+    async function commitOnce(repo, changes, message) {
       const ref = await gh(`/repos/${repo}/git/ref/heads/main`);
       const base = await gh(`/repos/${repo}/git/commits/${ref.object.sha}`);
       const tree = await gh(`/repos/${repo}/git/trees`, {
