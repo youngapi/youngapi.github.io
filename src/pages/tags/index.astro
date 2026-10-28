@@ -1,0 +1,22 @@
+---
+// 태그 모음 페이지 — 쓰인 태그를 글 수가 많은 순으로 보여 준다.
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { countTags, getPublishedPosts } from "../../lib/posts";
+
+const tags = countTags(await getPublishedPosts());
+const base = import.meta.env.BASE_URL;
+---
+
+<BaseLayout title="태그" description="태그 모음">
+  <h1 class="page-title">태그</h1>
+  <p class="page-sub">태그 {tags.length}개</p>
+  {tags.length === 0 ? (
+    <p class="empty">아직 태그가 없습니다.</p>
+  ) : (
+    <div class="tag-cloud">
+      {tags.map(([tag, count]) => (
+        <a href={`${base}tags/${tag}/`}>#{tag}<span>{count}</span></a>
+      ))}
+    </div>
+  )}
+</BaseLayout>

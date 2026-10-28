@@ -1,0 +1,82 @@
+---
+// 모든 페이지의 공통 틀 — <head>, 머리말(카테고리 메뉴), 꼬리말, 다크 모드 전환을 담당한다.
+import "../styles/global.css";
+import { SITE, CATEGORIES } from "../site";
+
+interface Props {
+  title?: string;
+  description?: string;
+  // 메뉴에서 강조할 카테고리 slug
+  activeCategory?: string;
+}
+
+const { title, description = SITE.description, activeCategory } = Astro.props;
+const pageTitle = title ? `${title} · ${SITE.title}` : SITE.title;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const base = import.meta.env.BASE_URL;
+---
+
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href={`${base}favicon.svg`} type="image/svg+xml" />
+    <link rel="alternate" type="application/rss+xml" title={SITE.title} href={`${base}rss.xml`} />
+    <link rel="sitemap" href={`${base}sitemap-index.xml`} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <script is:inline>
+      // 저장해 둔 테마를 화면이 그려지기 전에 적용해서 깜빡임을 막는다
+      try {
+        const saved = localStorage.getItem("theme");
+        if (saved === "light" || saved === "dark") document.documentElement.dataset.theme = saved;
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap">
+        <div class="top">
+          <a class="brand" href={base}>{SITE.title}</a>
+          <div class="top-links">
+            <a href={`${base}posts/`}>전체 글</a>
+            <a href={`${base}tags/`}>태그</a>
+            <a href={`${base}about/`}>소개</a>
+            <button class="theme-toggle" type="button" aria-label="다크 모드 전환" id="theme-toggle">◐</button>
+          </div>
+        </div>
+        <nav class="cat-nav" aria-label="기술 카테고리">
+          {CATEGORIES.map((c) => (
+            <a href={`${base}category/${c.slug}/`} aria-current={activeCategory === c.slug ? "page" : undefined}>
+              {c.name}
+            </a>
+          ))}
+        </nav>
+      </div>
+    </header>
+    <main class="wrap">
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <div class="wrap">
+        © {new Date().getFullYear()} {SITE.author} · <a href={SITE.github}>GitHub</a> · <a href={`${base}rss.xml`}>RSS</a>
+      </div>
+    </footer>
+    <script is:inline>
+      // 버튼을 누르면 라이트/다크를 바꾸고 선택을 기억한다
+      document.getElementById("theme-toggle")?.addEventListener("click", () => {
+        const root = document.documentElement;
+        const current = root.dataset.theme ?? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        const next = current === "dark" ? "light" : "dark";
+        root.dataset.theme = next;
+        try { localStorage.setItem("theme", next); } catch {}
+      });
+    </script>
+  </body>
+</html>

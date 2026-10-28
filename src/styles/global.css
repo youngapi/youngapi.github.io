@@ -1,0 +1,143 @@
+/* 블로그 전체 스타일 — 색은 :root 토큰으로 정하고 다크 모드에서 바꿔 끼운다. */
+:root {
+  --bg: #fbfbfa;
+  --surface: #ffffff;
+  --text: #1d1f23;
+  --muted: #646a73;
+  --line: #e6e6e3;
+  --accent: #2f6fde;
+  --accent-soft: #e8f0fd;
+  --code-bg: #f4f4f2;
+  --radius: 10px;
+  --max: 760px;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #131416;
+    --surface: #1b1c1f;
+    --text: #e8e9ec;
+    --muted: #9aa0a8;
+    --line: #2b2d31;
+    --accent: #7aa7ff;
+    --accent-soft: #1f2a40;
+    --code-bg: #1f2024;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #131416;
+  --surface: #1b1c1f;
+  --text: #e8e9ec;
+  --muted: #9aa0a8;
+  --line: #2b2d31;
+  --accent: #7aa7ff;
+  --accent-soft: #1f2a40;
+  --code-bg: #1f2024;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.75;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.wrap { max-width: var(--max); margin: 0 auto; padding: 0 16px; }
+
+/* 머리말과 메뉴 */
+.site-header { border-bottom: 1px solid var(--line); background: var(--surface); position: sticky; top: 0; z-index: 10; }
+.site-header .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 14px; }
+.brand { font-weight: 800; font-size: 1.15rem; color: var(--text); letter-spacing: -0.01em; }
+.brand:hover { text-decoration: none; }
+.top-links { display: flex; align-items: center; gap: 14px; font-size: 0.92rem; }
+.top-links a { color: var(--muted); }
+.theme-toggle {
+  border: 1px solid var(--line); background: transparent; color: var(--text);
+  border-radius: 999px; width: 34px; height: 34px; cursor: pointer; font-size: 1rem; line-height: 1;
+}
+.cat-nav { display: flex; gap: 6px; overflow-x: auto; padding: 10px 0 12px; scrollbar-width: none; }
+.cat-nav::-webkit-scrollbar { display: none; }
+.cat-nav a {
+  flex: none; padding: 4px 12px; border-radius: 999px; font-size: 0.88rem;
+  color: var(--muted); border: 1px solid var(--line);
+}
+.cat-nav a:hover { text-decoration: none; color: var(--text); }
+.cat-nav a[aria-current="page"] { background: var(--accent-soft); color: var(--accent); border-color: transparent; font-weight: 600; }
+
+main { padding: 32px 0 64px; }
+
+/* 목록 */
+.page-title { font-size: 1.6rem; margin: 0 0 4px; letter-spacing: -0.02em; }
+.page-sub { color: var(--muted); margin: 0 0 28px; }
+.section-title { font-size: 1.05rem; margin: 40px 0 12px; color: var(--muted); font-weight: 600; }
+.post-list { list-style: none; padding: 0; margin: 0; }
+.post-item { padding: 18px 0; border-bottom: 1px solid var(--line); }
+.post-item:first-child { padding-top: 4px; }
+.post-item h3 { margin: 0 0 4px; font-size: 1.12rem; line-height: 1.45; }
+.post-item h3 a { color: var(--text); }
+.post-item p { margin: 0 0 6px; color: var(--muted); font-size: 0.95rem; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 0.82rem; color: var(--muted); }
+.chip { padding: 1px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.tag { color: var(--muted); }
+
+.cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.cat-card {
+  display: block; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--surface); color: var(--text);
+}
+.cat-card:hover { text-decoration: none; border-color: var(--accent); }
+.cat-card strong { display: flex; justify-content: space-between; }
+.cat-card strong span { color: var(--muted); font-weight: 500; font-size: 0.85rem; }
+.cat-card small { color: var(--muted); display: block; margin-top: 2px; line-height: 1.5; }
+
+.empty { color: var(--muted); padding: 24px 0; }
+
+.tag-cloud { display: flex; flex-wrap: wrap; gap: 8px; }
+.tag-cloud a { padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; color: var(--text); font-size: 0.9rem; }
+.tag-cloud a span { color: var(--muted); margin-left: 4px; }
+
+/* 글 본문 */
+.post-head { margin-bottom: 28px; }
+.post-head h1 { font-size: 1.9rem; line-height: 1.35; margin: 8px 0 10px; letter-spacing: -0.02em; }
+.prose h2 { font-size: 1.35rem; margin: 2.2em 0 0.6em; letter-spacing: -0.01em; }
+.prose h3 { font-size: 1.12rem; margin: 1.8em 0 0.5em; }
+.prose p, .prose ul, .prose ol { margin: 0 0 1.1em; }
+.prose li { margin: 0.2em 0; }
+.prose code { background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 4px; font-size: 0.9em; }
+.prose pre { padding: 14px 16px; border-radius: var(--radius); overflow-x: auto; font-size: 0.88rem; line-height: 1.6; border: 1px solid var(--line); }
+.prose pre code { background: none; padding: 0; }
+.prose blockquote { margin: 0 0 1.1em; padding: 2px 16px; border-left: 3px solid var(--line); color: var(--muted); }
+.prose img { max-width: 100%; height: auto; border-radius: var(--radius); }
+.prose table { border-collapse: collapse; display: block; overflow-x: auto; margin-bottom: 1.1em; }
+.prose th, .prose td { border: 1px solid var(--line); padding: 6px 10px; }
+.repos { margin-top: 36px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 0.88rem; color: var(--muted); }
+
+/* shiki 다크 모드 코드 색 */
+:root[data-theme="dark"] .astro-code,
+:root[data-theme="dark"] .astro-code span { color: var(--shiki-dark) !important; background-color: var(--shiki-dark-bg) !important; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .astro-code,
+  :root:not([data-theme="light"]) .astro-code span { color: var(--shiki-dark) !important; background-color: var(--shiki-dark-bg) !important; }
+}
+
+.site-footer { border-top: 1px solid var(--line); padding: 24px 0 40px; color: var(--muted); font-size: 0.85rem; }
+
+@media (max-width: 520px) {
+  .post-head h1 { font-size: 1.55rem; }
+  .page-title { font-size: 1.4rem; }
+}

@@ -1,0 +1,51 @@
+[
+  {
+    "slug": "backend",
+    "name": "백엔드",
+    "description": "Java·Spring, Node, Python API 와 서버 로직",
+    "extensions": ["java", "kt", "kts", "gradle", "go", "py", "rb", "php", "cs", "rs"],
+    "keywords": ["controller", "service", "repository", "api", "server", "backend", "-be", "spring"]
+  },
+  {
+    "slug": "frontend",
+    "name": "프론트엔드",
+    "description": "Vue·Nuxt, React, 화면과 스타일",
+    "extensions": ["vue", "tsx", "jsx", "svelte", "astro", "css", "scss", "html"],
+    "keywords": ["component", "pages", "frontend", "-fe", "web", "ui"]
+  },
+  {
+    "slug": "mobile",
+    "name": "모바일",
+    "description": "Android·iOS·하이브리드 앱",
+    "extensions": ["swift", "dart", "m", "mm"],
+    "keywords": ["android", "ios", "capacitor", "ionic", "flutter", "mobile", "app"]
+  },
+  {
+    "slug": "devops",
+    "name": "인프라·DevOps",
+    "description": "Docker, CI/CD, 클라우드, 서버 설정",
+    "extensions": ["yml", "yaml", "tf", "sh", "ps1", "conf", "dockerfile"],
+    "keywords": ["docker", "compose", "deploy", "infra", "nginx", ".github/workflows", "k8s", "helm", "terraform"]
+  },
+  {
+    "slug": "database",
+    "name": "데이터베이스",
+    "description": "SQL, 스키마 설계, Redis·캐시",
+    "extensions": ["sql", "prisma"],
+    "keywords": ["migration", "schema", "mysql", "mariadb", "postgres", "redis", "db"]
+  },
+  {
+    "slug": "ai",
+    "name": "AI·데이터",
+    "description": "LLM, RAG, 데이터 처리와 분석",
+    "extensions": ["ipynb"],
+    "keywords": ["llm", "rag", "gemini", "claude", "openai", "embedding", "bigquery", "ml", "ai"]
+  },
+  {
+    "slug": "etc",
+    "name": "기타",
+    "description": "도구, 문서, 회고와 그 밖의 이야기",
+    "extensions": ["md", "txt"],
+    "keywords": ["docs", "readme"]
+  }
+]

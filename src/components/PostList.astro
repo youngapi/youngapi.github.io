@@ -1,0 +1,36 @@
+---
+// 글 목록 한 묶음을 그리는 컴포넌트 — 제목, 요약, 날짜, 카테고리, 태그를 보여 준다.
+import type { Post } from "../lib/posts";
+import { findCategory, formatDate } from "../site";
+
+interface Props {
+  posts: Post[];
+  // 카테고리 페이지에서는 카테고리 표시를 뺀다
+  hideCategory?: boolean;
+}
+
+const { posts, hideCategory = false } = Astro.props;
+const base = import.meta.env.BASE_URL;
+---
+
+{posts.length === 0 ? (
+  <p class="empty">아직 글이 없습니다.</p>
+) : (
+  <ul class="post-list">
+    {posts.map((post) => (
+      <li class="post-item">
+        <h3><a href={`${base}posts/${post.id}/`}>{post.data.title}</a></h3>
+        <p>{post.data.description}</p>
+        <div class="meta">
+          <time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
+          {!hideCategory && (
+            <a class="chip" href={`${base}category/${post.data.category}/`}>{findCategory(post.data.category).name}</a>
+          )}
+          {post.data.tags.map((tag) => (
+            <a class="tag" href={`${base}tags/${tag}/`}>#{tag}</a>
+          ))}
+        </div>
+      </li>
+    ))}
+  </ul>
+)}

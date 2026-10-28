@@ -1,0 +1,24 @@
+{
+  "name": "youngapi-blog",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "description": "youngapi.github.io — Astro 개발 블로그와 매일 작업 기록 초안 자동화",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "devlog": "node scripts/devlog/daily-draft.mjs",
+    "devlog:dry": "node scripts/devlog/daily-draft.mjs --dry-run",
+    "test:sanitize": "node scripts/devlog/sanitize.test.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.3.0",
+    "@astrojs/rss": "^4.0.19",
+    "@astrojs/sitemap": "^3.7.4",
+    "astro": "^7.4.2"
+  }
+}

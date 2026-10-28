@@ -1,0 +1,12 @@
+{
+  "owner": "youngapi",
+  "timezone": "Asia/Seoul",
+  "includePrivate": false,
+  "extraRepos": [],
+  "excludeRepos": ["youngapi/youngapi.github.io"],
+  "maxCommits": 40,
+  "maxFilesPerCommit": 30,
+  "maxBranchesPerRepo": 15,
+  "model": "claude-opus-5-5",
+  "effort": "medium"
+}

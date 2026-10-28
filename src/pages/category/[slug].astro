@@ -1,0 +1,21 @@
+---
+// 카테고리별 글 목록 페이지 — 글이 없는 카테고리도 메뉴에서 열리도록 모두 만든다.
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PostList from "../../components/PostList.astro";
+import { getPublishedPosts } from "../../lib/posts";
+import { CATEGORIES, type Category } from "../../site";
+
+// 카테고리마다 페이지를 하나씩 만든다.
+export function getStaticPaths() {
+  return CATEGORIES.map((category) => ({ params: { slug: category.slug }, props: { category } }));
+}
+
+const { category } = Astro.props as { category: Category };
+const posts = (await getPublishedPosts()).filter((p) => p.data.category === category.slug);
+---
+
+<BaseLayout title={category.name} description={category.description} activeCategory={category.slug}>
+  <h1 class="page-title">{category.name}</h1>
+  <p class="page-sub">{category.description} · 글 {posts.length}개</p>
+  <PostList posts={posts} hideCategory />
+</BaseLayout>

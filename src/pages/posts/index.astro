@@ -1,0 +1,25 @@
+---
+// 전체 글 페이지 — 모든 글을 연도별로 묶어 보여 준다.
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PostList from "../../components/PostList.astro";
+import { getPublishedPosts, type Post } from "../../lib/posts";
+
+const posts = await getPublishedPosts();
+const byYear = new Map<number, Post[]>();
+for (const post of posts) {
+  const year = post.data.date.getFullYear();
+  byYear.set(year, [...(byYear.get(year) ?? []), post]);
+}
+---
+
+<BaseLayout title="전체 글" description="모든 글 목록">
+  <h1 class="page-title">전체 글</h1>
+  <p class="page-sub">글 {posts.length}개</p>
+  {[...byYear.entries()].map(([year, list]) => (
+    <section>
+      <h2 class="section-title">{year}</h2>
+      <PostList posts={list} />
+    </section>
+  ))}
+  {posts.length === 0 && <PostList posts={[]} />}
+</BaseLayout>

@@ -1,0 +1,47 @@
+---
+// 글 상세 페이지 — 마크다운 본문과 카테고리·태그·작업한 repo 를 보여 준다.
+import { render } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getPublishedPosts, type Post } from "../../lib/posts";
+import { findCategory, formatDate, SITE } from "../../site";
+
+// 공개된 글마다 페이지를 하나씩 만든다.
+export async function getStaticPaths() {
+  const posts = await getPublishedPosts();
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props as { post: Post };
+const { Content } = await render(post);
+const category = findCategory(post.data.category);
+const base = import.meta.env.BASE_URL;
+---
+
+<BaseLayout title={post.data.title} description={post.data.description} activeCategory={category.slug}>
+  <article>
+    <header class="post-head">
+      <div class="meta">
+        <a class="chip" href={`${base}category/${category.slug}/`}>{category.name}</a>
+        <time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
+      </div>
+      <h1>{post.data.title}</h1>
+      <div class="meta">
+        {post.data.tags.map((tag) => <a class="tag" href={`${base}tags/${tag}/`}>#{tag}</a>)}
+      </div>
+    </header>
+    <div class="prose">
+      <Content />
+    </div>
+    {post.data.repos.length > 0 && (
+      <p class="repos">
+        작업한 저장소:{" "}
+        {post.data.repos.map((repo, i) => (
+          <>
+            {i > 0 && ", "}
+            <a href={`${SITE.github}/${repo}`}>{repo}</a>
+          </>
+        ))}
+      </p>
+    )}
+  </article>
+</BaseLayout>

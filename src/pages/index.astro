@@ -1,0 +1,30 @@
+---
+// 첫 화면 — 기술 카테고리 카드(글 수 포함)와 최근 글 10개를 보여 준다.
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PostList from "../components/PostList.astro";
+import { getPublishedPosts } from "../lib/posts";
+import { CATEGORIES, SITE } from "../site";
+
+const posts = await getPublishedPosts();
+const base = import.meta.env.BASE_URL;
+const countOf = (slug: string) => posts.filter((p) => p.data.category === slug).length;
+---
+
+<BaseLayout>
+  <h1 class="page-title">{SITE.title}</h1>
+  <p class="page-sub">{SITE.description}</p>
+
+  <h2 class="section-title">기술별로 보기</h2>
+  <div class="cat-grid">
+    {CATEGORIES.map((c) => (
+      <a class="cat-card" href={`${base}category/${c.slug}/`}>
+        <strong>{c.name}<span>{countOf(c.slug)}</span></strong>
+        <small>{c.description}</small>
+      </a>
+    ))}
+  </div>
+
+  <h2 class="section-title">최근 글</h2>
+  <PostList posts={posts.slice(0, 10)} />
+  {posts.length > 10 && <p><a href={`${base}posts/`}>전체 글 보기 →</a></p>}
+</BaseLayout>

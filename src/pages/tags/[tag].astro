@@ -1,0 +1,23 @@
+---
+// 태그별 글 목록 페이지.
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PostList from "../../components/PostList.astro";
+import { countTags, getPublishedPosts } from "../../lib/posts";
+
+// 쓰인 태그마다 페이지를 하나씩 만든다.
+export async function getStaticPaths() {
+  const posts = await getPublishedPosts();
+  return countTags(posts).map(([tag]) => ({
+    params: { tag },
+    props: { tag, posts: posts.filter((p) => p.data.tags.includes(tag)) },
+  }));
+}
+
+const { tag, posts } = Astro.props;
+---
+
+<BaseLayout title={`#${tag}`} description={`${tag} 태그 글 목록`}>
+  <h1 class="page-title">#{tag}</h1>
+  <p class="page-sub">글 {posts.length}개</p>
+  <PostList posts={posts} />
+</BaseLayout>
