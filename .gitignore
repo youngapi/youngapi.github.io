@@ -6,3 +6,5 @@ dist/
 .env.*
 *.log
 .devlog-out/
+# 커밋 이메일·지울 단어 같은 개인 설정 (매일 초안 로컬 실행용)
+devlog.local.json

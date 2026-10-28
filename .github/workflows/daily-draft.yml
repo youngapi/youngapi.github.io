@@ -1,5 +1,10 @@
-# 매일 개발 기록 초안 — 매일 09:00(KST) 에 어제 작업한 커밋으로 글 초안을 만들어 PR 로 올린다.
+# 개발 기록 초안 (Claude API 방식) — 지정한 날짜의 커밋으로 글 초안을 만들어 PR 로 올린다.
 # 바로 게시하지 않는다. PR 을 읽고 고친 뒤 머지하면 deploy.yml 이 게시한다.
+#
+# 지금은 매일 초안을 PC 의 Claude Code 예약 작업(구독, 추가 비용 없음)이 쓰므로 자동 실행(schedule)은 꺼 두었다.
+# API 로 옮길 때는 아래 on: 에 다음을 다시 넣는다.
+#   schedule:
+#     - cron: "0 0 * * *"   # 매일 09:00 KST
 #
 # 필요한 저장소 Secrets:
 #   ANTHROPIC_API_KEY       (필수) Claude API 키
@@ -9,8 +14,6 @@
 name: Daily devlog draft
 
 on:
-  schedule:
-    - cron: "0 0 * * *"
   workflow_dispatch:
     inputs:
       date:
@@ -80,4 +83,4 @@ jobs:
           git push origin "$branch"
           gh pr create --base main --head "$branch" \
             --title "devlog: $DRAFT_DATE · $DRAFT_TITLE" \
-            --body-file .devlog-out/pr-body.md
+            --body-file ".devlog-out/$DRAFT_DATE/pr-body.md"
