@@ -41,7 +41,9 @@ npm run dev
 
 ## 매일 초안 자동화
 
-지금은 **PC 의 Claude Code 예약 작업**(Claude 앱 → Scheduled, `youngapi-devlog-daily`, 매일 09:00)이 초안을 씁니다. Claude 구독 안에서 돌아서 API 비용이 들지 않습니다. 그 시간에 앱이 꺼져 있으면 다음에 켤 때 돌고, 밀린 날은 최근 7일까지 채웁니다.
+지금은 **Claude Code 클라우드 루틴**("youngapi 블로그 매일 개발 일지 초안", [claude.ai/code/routines](https://claude.ai/code/routines))이 매일 09:00 KST 에 초안을 씁니다. Claude 구독 안에서 돌아서 API 비용이 들지 않고 PC 가 꺼져 있어도 됩니다. 클라우드에서 이 저장소를 받아 아래 순서대로 실행하고, 밀린 날은 최근 3일까지 채웁니다. 저장소 접근은 Claude GitHub 앱(이 저장소에만 설치)으로 합니다.
+
+클라우드에는 `devlog.local.json` 이 없어서 youngapi 계정에 연결되지 않은 이메일의 커밋은 잡히지 않습니다. 회사 이메일 커밋도 잡으려면 GitHub **Settings → Emails** 에 그 이메일을 추가해 둡니다.
 
 1. **수집** `node scripts/devlog/daily-draft.mjs --collect --date YYYY-MM-DD`
    `youngapi` 의 공개 저장소에 그날 올라온 커밋을 모든 브랜치에서 모읍니다. 커밋 메시지와 바뀐 파일 목록만 쓰고 **코드 내용은 가져오지 않습니다.** 키·토큰·이메일·IP·URL·DB 접속 문자열·`.env` 같은 파일과 지정한 단어를 지운 뒤 `.devlog-out/YYYY-MM-DD/activity.json` 에 남깁니다.
@@ -50,7 +52,7 @@ npm run dev
    완성된 글을 다시 걸러 내고 `src/content/posts/devlog-YYYY-MM-DD.md` 와 PR 설명을 만듭니다.
 4. 빌드가 되는지 확인하고 `devlog/YYYY-MM-DD` 브랜치로 PR 을 올립니다. **머지해야 게시됩니다.**
 
-### 개인 설정 `devlog.local.json` (저장소에 올라가지 않음)
+### 로컬에서 돌릴 때 개인 설정 `devlog.local.json` (저장소에 올라가지 않음)
 
 ```json
 {
@@ -63,7 +65,7 @@ npm run dev
 
 ### 나중에 Claude API 로 옮길 때
 
-[`.github/workflows/daily-draft.yml`](.github/workflows/daily-draft.yml) 이 같은 스크립트로 API(`claude-opus-5-5`)를 불러 초안 PR 을 만듭니다. 지금은 자동 실행(schedule)을 꺼 두었고 수동 실행만 됩니다. 옮길 때는 아래 Secrets 를 넣고 워크플로 맨 위 주석대로 `schedule` 을 다시 켠 뒤 예약 작업을 끄면 됩니다. PC 가 꺼져 있어도 돌지만 작업한 날 한 번에 100원 안팎이 듭니다.
+[`.github/workflows/daily-draft.yml`](.github/workflows/daily-draft.yml) 이 같은 스크립트로 API(`claude-opus-5-5`)를 불러 초안 PR 을 만듭니다. 지금은 자동 실행(schedule)을 꺼 두었고 수동 실행만 됩니다. 옮길 때는 아래 Secrets 를 넣고 워크플로 맨 위 주석대로 `schedule` 을 다시 켠 뒤 클라우드 루틴을 끄면 됩니다. PC 가 꺼져 있어도 돌지만 작업한 날 한 번에 100원 안팎이 듭니다.
 
 | 이름 | 필수 | 내용 |
 |---|---|---|
