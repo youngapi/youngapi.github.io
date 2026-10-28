@@ -1,29 +1,46 @@
 // GitHub API 로 하루치 작업 내역을 모은다 — 저장소 목록, 브랜치별 커밋, 커밋마다 바뀐 파일 목록.
 // 코드 내용(patch)은 가져오지 않는다.
 
+import { execFileSync } from "node:child_process";
+
 const API = "https://api.github.com";
+
+// 클라우드 세션처럼 HTTPS 프록시가 있는 곳에서는 curl 로 부른다.
+// Node fetch 는 프록시를 안 거쳐 공용 IP 한도(시간당 60회)에 걸리지만, curl 은 프록시를 거쳐 인증된 한도를 쓴다.
+const PROXY = process.env.HTTPS_PROXY || process.env.https_proxy;
 
 // 받은 토큰이 GitHub API 에서 거부되면(클라우드 세션의 git 전용 토큰 등) 그 뒤로는 토큰 없이 부른다
 let tokenRejected = false;
 
+// HTTP 요청 하나를 보내고 {status, text} 를 돌려준다. 프록시가 있으면 curl, 없으면 fetch.
+async function request(url, headers) {
+  if (!PROXY) {
+    const res = await fetch(url, { headers });
+    return { status: res.status, text: await res.text() };
+  }
+  const args = ["-sS", "-w", "\n%{http_code}"];
+  for (const [k, v] of Object.entries(headers)) args.push("-H", `${k}: ${v}`);
+  const out = execFileSync("curl", [...args, url], { encoding: "utf8", maxBuffer: 50 * 1024 * 1024 });
+  const cut = out.lastIndexOf("\n");
+  return { status: Number(out.slice(cut + 1)), text: out.slice(0, cut) };
+}
+
 // GitHub API 를 한 번 호출해서 JSON 을 돌려준다. 실패하면 상태 코드와 함께 오류를 낸다.
 async function gh(path, token) {
   const useToken = token && !tokenRejected;
-  const res = await fetch(path.startsWith("http") ? path : `${API}${path}`, {
-    headers: {
-      Accept: "application/vnd.github+json",
-      "X-GitHub-Api-Version": "2022-11-28",
-      ...(useToken ? { Authorization: `Bearer ${token}` } : {}),
-    },
+  const { status, text } = await request(path.startsWith("http") ? path : `${API}${path}`, {
+    Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+    ...(useToken ? { Authorization: `Bearer ${token}` } : {}),
   });
-  if (res.status === 401 && useToken) {
-    console.warn("GitHub 토큰이 거부되어 토큰 없이 다시 시도합니다(공개 저장소만 읽음).");
+  if (status === 401 && useToken) {
+    console.warn("GitHub 토큰이 거부되어 토큰 없이 다시 시도합니다.");
     tokenRejected = true;
     return gh(path, token);
   }
-  if (res.status === 409) return []; // 빈 저장소
-  if (!res.ok) throw new Error(`GitHub API ${res.status} ${path}: ${(await res.text()).slice(0, 200)}`);
-  return res.json();
+  if (status === 409) return []; // 빈 저장소
+  if (status < 200 || status >= 300) throw new Error(`GitHub API ${status} ${path}: ${text.slice(0, 200)}`);
+  return JSON.parse(text);
 }
 
 // 목록 API 를 끝 페이지까지 넘기며 모두 모은다(최대 limit 개).
