@@ -68,12 +68,23 @@ function toRepo(r) {
   };
 }
 
-// 대상 저장소 목록을 만든다. 기본은 owner 의 공개 저장소, includePrivate 면 토큰으로 볼 수 있는 저장소 전체.
+// 대상 저장소 목록을 만든다. 기본은 owner 의 공개 저장소, includePrivate 면 owner 가 소유한 비공개 저장소까지.
+// 회사 조직 저장소는 넣지 않는다. 토큰이 비공개 목록을 못 보면(개인 토큰 없음) 공개 저장소만 쓴다.
 // since 이후에 push 가 있었던 저장소만 남긴다.
 export async function listActiveRepos({ owner, includePrivate, extraRepos, excludeRepos, since, token }) {
-  const raw = includePrivate
-    ? await ghAll("/user/repos?affiliation=owner,collaborator,organization_member&sort=pushed", token)
-    : await ghAll(`/users/${owner}/repos?type=owner&sort=pushed`, token);
+  let raw;
+  let privateOk = false;
+  if (includePrivate && token) {
+    try {
+      raw = (await ghAll("/user/repos?affiliation=owner&sort=pushed", token)).filter(
+        (r) => r.owner?.login?.toLowerCase() === owner.toLowerCase(),
+      );
+      privateOk = true;
+    } catch (error) {
+      console.warn(`비공개 저장소 목록을 못 읽어 공개 저장소만 모읍니다: ${error.message.slice(0, 120)}`);
+    }
+  }
+  raw ??= await ghAll(`/users/${owner}/repos?type=owner&sort=pushed`, token);
 
   const repos = raw.map(toRepo);
   for (const full of extraRepos) {
@@ -83,7 +94,7 @@ export async function listActiveRepos({ owner, includePrivate, extraRepos, exclu
   }
   const excluded = new Set(excludeRepos.map((r) => r.toLowerCase()));
   return repos.filter(
-    (r) => !excluded.has(r.fullName.toLowerCase()) && (!r.private || includePrivate) && new Date(r.pushedAt) >= since,
+    (r) => !excluded.has(r.fullName.toLowerCase()) && (!r.private || privateOk) && new Date(r.pushedAt) >= since,
   );
 }
 

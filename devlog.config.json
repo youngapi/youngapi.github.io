@@ -1,9 +1,9 @@
 {
   "owner": "youngapi",
   "timezone": "Asia/Seoul",
-  "includePrivate": false,
+  "includePrivate": true,
   "extraRepos": [],
-  "excludeRepos": ["youngapi/youngapi.github.io"],
+  "excludeRepos": ["youngapi/youngapi.github.io", "youngapi/devlog-data"],
   "maxCommits": 40,
   "maxFilesPerCommit": 30,
   "maxBranchesPerRepo": 15,
