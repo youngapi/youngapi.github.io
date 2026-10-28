@@ -12,14 +12,14 @@ const projects = [...PROJECTS].sort(
 );
 ---
 
-<BaseLayout title="프로젝트" description="프로젝트별로 모아 본 작업 기록">
+<BaseLayout title="프로젝트" description="프로젝트별로 정리한 글">
   <header class="page-head">
     <p class="eyebrow">Projects</p>
     <h1 class="page-title">프로젝트</h1>
-    <p class="page-sub">프로젝트마다 소개 글과 작업 기록을 모아 둔다. 날짜·카테고리·태그로 보려면 <a href="/posts/">전체 글</a>.</p>
+    <p class="page-sub">프로젝트 {projects.length}개</p>
   </header>
   {projects.length === 0 ? (
-    <p class="empty">아직 정리한 프로젝트가 없다.</p>
+    <p class="empty">아직 등록된 프로젝트가 없습니다.</p>
   ) : (
     <div class="project-grid">
       {projects.map((p) => <ProjectCard project={p} count={countOf(p.slug)} />)}

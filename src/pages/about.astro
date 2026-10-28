@@ -1,23 +1,26 @@
 ---
-// 소개 페이지 — 블로그 주인과 매일 기록 방식 설명.
+// 소개 페이지 — 블로그 주인 소개와 링크.
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { SITE } from "../site";
+const base = import.meta.env.BASE_URL;
 ---
 
-<BaseLayout title="소개" description="이 블로그에 대해">
+<BaseLayout title="소개" description={`백엔드 개발자 ${SITE.author} 소개`}>
   <header class="page-head">
     <p class="eyebrow">About</p>
     <h1 class="page-title">소개</h1>
   </header>
   <div class="prose">
-    <p>백엔드 개발자 <strong>{SITE.author}</strong>. 주로 Java·Spring 으로 API 를 만들고, 필요하면 프론트, 인프라, DB 까지 같이 본다.</p>
-    <p>여기엔 그날 한 작업이랑 하다가 막혔던 것, 찾아본 것들을 적는다. 정리된 튜토리얼보다는 작업 일지에 가깝다.</p>
-    <h2>매일 기록</h2>
+    <p>안녕하세요, 백엔드 개발자 <strong>{SITE.author}</strong> 입니다.</p>
     <p>
-      공개 저장소에 커밋한 날은 다음 날 아침에 일지 초안이 PR 로 올라온다. 직접 읽고 고친 다음 머지해야 게시된다.
-      커밋 메시지랑 파일 목록만 쓰고 코드 내용은 쓰지 않는다.
+      Java·Spring 으로 API 서버를 주로 만들고, 필요할 때는 Python, 프론트엔드, 인프라, 데이터베이스까지 함께 다룹니다.
+      요즘은 메시지 큐와 컨테이너로 분석 작업을 돌리는 일, 지도 데이터를 다루는 일을 많이 하고 있습니다.
     </p>
-    <h2>연락</h2>
-    <p><a href={SITE.github}>GitHub @{SITE.author}</a></p>
+    <p>이 블로그에는 작업하면서 다룬 기술과 부딪힌 문제, 그때그때 찾아본 것들을 정리해 둡니다.</p>
+    <h2>링크</h2>
+    <ul>
+      <li><a href={SITE.github}>GitHub</a></li>
+      <li><a href={`${base}rss.xml`}>RSS</a></li>
+    </ul>
   </div>
 </BaseLayout>

@@ -2,7 +2,7 @@
   {
     "slug": "backend",
     "name": "백엔드",
-    "description": "Java, Spring, API 만들면서 겪은 것들",
+    "description": "Java · Spring · Python · 메시징",
     "color": "#3b6ef5",
     "children": [
       {
@@ -102,7 +102,7 @@
   {
     "slug": "frontend",
     "name": "프론트엔드",
-    "description": "Vue, Nuxt, React, 화면 작업",
+    "description": "Vue · React · 웹 기본",
     "color": "#8b5cf6",
     "children": [
       {
@@ -159,7 +159,7 @@
   {
     "slug": "mobile",
     "name": "모바일",
-    "description": "Android, iOS, 하이브리드 앱",
+    "description": "Android · iOS",
     "color": "#10a37f",
     "children": [
       {
@@ -204,7 +204,7 @@
   {
     "slug": "devops",
     "name": "인프라·DevOps",
-    "description": "Docker, CI/CD, 클라우드, 서버 설정",
+    "description": "Docker · CI/CD · 클라우드",
     "color": "#e8890c",
     "children": [
       {
@@ -264,7 +264,7 @@
   {
     "slug": "database",
     "name": "데이터베이스",
-    "description": "SQL, 스키마, Redis",
+    "description": "MySQL · MariaDB · Redis",
     "color": "#0e9fa8",
     "children": [
       {
@@ -316,7 +316,7 @@
   {
     "slug": "ai",
     "name": "AI·데이터",
-    "description": "LLM, RAG, 데이터 처리",
+    "description": "영상 처리 · GIS · LLM",
     "color": "#e0457b",
     "children": [
       {
@@ -379,7 +379,7 @@
   {
     "slug": "etc",
     "name": "기타",
-    "description": "도구, 문서, 그 밖의 이야기",
+    "description": "도구 · 블로그 · 기타",
     "color": "#6b7280",
     "children": [
       {

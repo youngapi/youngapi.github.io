@@ -4,7 +4,7 @@ import projectList from "./data/projects.json";
 
 export const SITE = {
   title: "youngapi.log",
-  description: "백엔드 개발자의 작업 일지",
+  description: "개발하면서 배운 것들을 기록합니다",
   author: "youngapi",
   github: "https://github.com/youngapi",
   locale: "ko-KR",

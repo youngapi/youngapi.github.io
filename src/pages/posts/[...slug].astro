@@ -73,7 +73,7 @@ const base = import.meta.env.BASE_URL;
 
       {post.data.repos.length > 0 && (
         <aside class="repo-box">
-          <span>작업한 저장소</span>
+          <span>저장소</span>
           <div>
             {post.data.repos.map((repo) => (
               <a href={`${SITE.github}/${repo}`}>{repo}</a>
