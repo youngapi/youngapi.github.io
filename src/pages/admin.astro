@@ -1,0 +1,255 @@
+---
+// 관리 페이지 — 비공개 저장소(devlog-data/drafts)에 보류된 글을 미리 보고, 골라서 블로그에 공개하거나 버린다.
+// 서버가 없으므로 사용자가 브라우저에 넣은 GitHub fine-grained 토큰으로 GitHub API 를 직접 부른다.
+// 토큰 주인이 youngapi 일 때만 화면을 연다. 토큰은 이 브라우저 localStorage 에만 둔다.
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { CATEGORIES } from "../site";
+
+const config = {
+  owner: "youngapi",
+  blogRepo: "youngapi/youngapi.github.io",
+  draftRepo: "youngapi/devlog-data",
+  draftDir: "drafts",
+  postDir: "src/content/posts",
+  categories: CATEGORIES.map((c) => c.slug),
+};
+---
+
+<BaseLayout title="관리" description="보류 글 관리" seo={{ noindex: true }}>
+  <header class="page-head">
+    <p class="eyebrow">Admin</p>
+    <h1 class="page-title">보류 글</h1>
+    <p class="page-sub" id="admin-status">GitHub 토큰으로 로그인하세요.</p>
+  </header>
+
+  <section id="login" class="admin-box" hidden>
+    <p>
+      youngapi 계정의 fine-grained 토큰을 넣으세요. 저장소는 <code>youngapi.github.io</code>, <code>devlog-data</code> 두 개,
+      권한은 <b>Contents: Read and write</b>. 토큰은 이 브라우저에만 저장됩니다.
+    </p>
+    <form id="login-form" class="admin-row">
+      <input id="token" type="password" autocomplete="off" placeholder="github_pat_..." required />
+      <button class="btn" type="submit">로그인</button>
+    </form>
+  </section>
+
+  <section id="panel" hidden>
+    <div class="admin-row admin-toolbar">
+      <button class="btn" id="publish-selected" type="button" disabled>선택 공개</button>
+      <button class="btn ghost" id="discard-selected" type="button" disabled>선택 버리기</button>
+      <button class="btn ghost" id="refresh" type="button">새로고침</button>
+      <span class="admin-spacer"></span>
+      <button class="btn ghost" id="logout" type="button">로그아웃</button>
+    </div>
+    <div class="admin-grid">
+      <ul id="draft-list" class="admin-list"></ul>
+      <article id="preview" class="admin-preview">
+        <p class="empty">왼쪽에서 글을 고르면 미리 보기가 나옵니다.</p>
+      </article>
+    </div>
+  </section>
+
+  <script is:inline src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+  <script is:inline define:vars={{ config }}>
+    const API = "https://api.github.com";
+    const TOKEN_KEY = "devlog-admin-token";
+    const $ = (id) => document.getElementById(id);
+    let token = "";
+    let drafts = []; // {name, path, sha, text, meta}
+
+    // 토큰을 읽고 쓴다. localStorage 가 막힌 브라우저에서는 이 페이지를 연 동안만 쓴다.
+    const loadToken = () => { try { return localStorage.getItem(TOKEN_KEY) || ""; } catch { return ""; } };
+    const saveToken = (v) => { try { v ? localStorage.setItem(TOKEN_KEY, v) : localStorage.removeItem(TOKEN_KEY); } catch {} };
+
+    // GitHub API 를 부른다. 실패하면 상태 코드를 담아 오류를 낸다.
+    async function gh(path, options = {}) {
+      const res = await fetch(path.startsWith("http") ? path : API + path, {
+        ...options,
+        headers: { Accept: "application/vnd.github+json", Authorization: `Bearer ${token}`, ...(options.headers || {}) },
+      });
+      if (!res.ok) throw new Error(`${res.status} ${path}`);
+      return res.status === 204 ? null : res.json();
+    }
+
+    // UTF-8 base64 를 문자열로 바꾼다(GitHub contents API 응답용).
+    const decode = (b64) => new TextDecoder().decode(Uint8Array.from(atob(b64.replace(/\n/g, "")), (c) => c.charCodeAt(0)));
+
+    // 마크다운 앞부분의 frontmatter 를 간단히 읽는다. 값은 JSON 형식 문자열·배열이다.
+    function parseFrontmatter(text) {
+      const m = text.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$/);
+      if (!m) return { meta: {}, body: text };
+      const meta = {};
+      for (const line of m[1].split(/\r?\n/)) {
+        const i = line.indexOf(":");
+        if (i < 0) continue;
+        const key = line.slice(0, i).trim();
+        const raw = line.slice(i + 1).trim();
+        try { meta[key] = JSON.parse(raw); } catch { meta[key] = raw; }
+      }
+      return { meta, body: m[2] };
+    }
+
+    // 공개해도 되는 글인지 확인한다. 빌드가 깨지는 글은 공개하지 않는다.
+    function problems(d) {
+      const out = [];
+      for (const k of ["title", "description", "date", "category"]) if (!d.meta[k]) out.push(`${k} 없음`);
+      if (d.meta.category && !config.categories.includes(d.meta.category)) out.push(`카테고리 ${d.meta.category} 없음`);
+      if (!/^\d{4}-\d{2}-\d{2}/.test(String(d.meta.date || ""))) out.push("날짜 형식");
+      return out;
+    }
+
+    // 여러 파일을 한 커밋으로 올리거나 지운다(content 가 null 이면 삭제). Git Data API 사용.
+    async function commitFiles(repo, changes, message) {
+      const ref = await gh(`/repos/${repo}/git/ref/heads/main`);
+      const base = await gh(`/repos/${repo}/git/commits/${ref.object.sha}`);
+      const tree = await gh(`/repos/${repo}/git/trees`, {
+        method: "POST",
+        body: JSON.stringify({
+          base_tree: base.tree.sha,
+          tree: changes.map((c) =>
+            c.content === null
+              ? { path: c.path, mode: "100644", type: "blob", sha: null }
+              : { path: c.path, mode: "100644", type: "blob", content: c.content },
+          ),
+        }),
+      });
+      const commit = await gh(`/repos/${repo}/git/commits`, {
+        method: "POST",
+        body: JSON.stringify({ message, tree: tree.sha, parents: [ref.object.sha] }),
+      });
+      await gh(`/repos/${repo}/git/refs/heads/main`, { method: "PATCH", body: JSON.stringify({ sha: commit.sha }) });
+    }
+
+    // 보류 글 목록과 내용을 모두 읽어 날짜 내림차순으로 그린다.
+    async function loadDrafts() {
+      $("admin-status").textContent = "보류 글을 읽는 중...";
+      let files = [];
+      try {
+        files = await gh(`/repos/${config.draftRepo}/contents/${config.draftDir}`);
+      } catch (e) {
+        if (!String(e.message).startsWith("404")) throw e;
+      }
+      files = files.filter((f) => f.type === "file" && f.name.endsWith(".md"));
+      drafts = await Promise.all(
+        files.map(async (f) => {
+          const file = await gh(`/repos/${config.draftRepo}/contents/${f.path}`);
+          const text = decode(file.content);
+          return { name: f.name, path: f.path, sha: f.sha, text, ...parseFrontmatter(text) };
+        }),
+      );
+      drafts.sort((a, b) => String(b.meta.date).localeCompare(String(a.meta.date)) || a.name.localeCompare(b.name));
+      renderList();
+      $("admin-status").textContent = `보류 글 ${drafts.length}개`;
+    }
+
+    // 왼쪽 목록을 그린다.
+    function renderList() {
+      const list = $("draft-list");
+      list.innerHTML = "";
+      if (!drafts.length) list.innerHTML = '<li class="empty">보류 글이 없습니다.</li>';
+      for (const d of drafts) {
+        const li = document.createElement("li");
+        const bad = problems(d);
+        li.innerHTML = `<label><input type="checkbox" data-name="${d.name}" ${bad.length ? "disabled" : ""}></label>
+          <button type="button" class="admin-item"><span class="admin-date"></span><b></b><small></small></button>`;
+        li.querySelector(".admin-date").textContent = String(d.meta.date || "").slice(0, 10);
+        li.querySelector("b").textContent = d.meta.title || d.name;
+        li.querySelector("small").textContent = bad.length ? `공개 불가: ${bad.join(", ")}` : `${d.meta.category} · ${(d.meta.tags || []).join(", ")}`;
+        li.querySelector(".admin-item").addEventListener("click", () => showPreview(d));
+        list.appendChild(li);
+      }
+      list.querySelectorAll("input[type=checkbox]").forEach((c) => c.addEventListener("change", updateButtons));
+      updateButtons();
+    }
+
+    // 선택한 글 이름 목록.
+    const selected = () => [...document.querySelectorAll("#draft-list input:checked")].map((c) => c.dataset.name);
+
+    // 선택 개수에 따라 버튼을 켜고 끈다.
+    function updateButtons() {
+      const n = selected().length;
+      $("publish-selected").disabled = n === 0;
+      $("discard-selected").disabled = n === 0;
+      $("publish-selected").textContent = n ? `선택 공개 (${n})` : "선택 공개";
+    }
+
+    // 오른쪽에 글 미리 보기를 그린다. 글 하나만 공개/버리기 버튼도 단다.
+    function showPreview(d) {
+      const p = $("preview");
+      p.innerHTML = `<div class="meta"></div><h2 class="admin-title"></h2><p class="post-desc"></p>
+        <div class="admin-row"><button class="btn" data-act="publish" type="button">이 글 공개</button>
+        <button class="btn ghost" data-act="discard" type="button">버리기</button>
+        <a class="btn ghost" target="_blank" rel="noopener">GitHub 에서 고치기</a></div><div class="prose"></div>`;
+      p.querySelector(".meta").textContent = `${String(d.meta.date).slice(0, 10)} · ${d.meta.category} · ${(d.meta.tags || []).join(", ")}`;
+      p.querySelector(".admin-title").textContent = d.meta.title || d.name;
+      p.querySelector(".post-desc").textContent = d.meta.description || "";
+      p.querySelector("a").href = `https://github.com/${config.draftRepo}/edit/main/${d.path}`;
+      p.querySelector(".prose").innerHTML = window.marked ? window.marked.parse(d.body) : `<pre></pre>`;
+      if (!window.marked) p.querySelector(".prose pre").textContent = d.body;
+      const bad = problems(d);
+      p.querySelector('[data-act="publish"]').disabled = bad.length > 0;
+      p.querySelector('[data-act="publish"]').addEventListener("click", () => publish([d.name]));
+      p.querySelector('[data-act="discard"]').addEventListener("click", () => discard([d.name]));
+    }
+
+    // 고른 글을 블로그 저장소에 올리고(한 커밋) 보류함에서 지운다(한 커밋). 배포는 블로그 Actions 가 한다.
+    async function publish(names) {
+      const items = drafts.filter((d) => names.includes(d.name) && problems(d).length === 0);
+      if (!items.length || !confirm(`${items.length}개 글을 공개할까요? 1~2분 뒤 블로그에 올라갑니다.`)) return;
+      $("admin-status").textContent = "공개하는 중...";
+      try {
+        await commitFiles(config.blogRepo, items.map((d) => ({ path: `${config.postDir}/${d.name}`, content: d.text })), `publish: ${items.map((d) => d.name).join(", ")}`.slice(0, 250));
+        await commitFiles(config.draftRepo, items.map((d) => ({ path: d.path, content: null })), `published: ${items.length}개`);
+        $("preview").innerHTML = '<p class="empty">공개했습니다. 1~2분 뒤 블로그에 반영됩니다.</p>';
+        await loadDrafts();
+      } catch (e) {
+        alert(`공개 실패: ${e.message}`);
+        $("admin-status").textContent = "공개 실패. 새로고침 후 다시 시도하세요.";
+      }
+    }
+
+    // 고른 글을 보류함에서 지운다(블로그에는 올리지 않음).
+    async function discard(names) {
+      const items = drafts.filter((d) => names.includes(d.name));
+      if (!items.length || !confirm(`${items.length}개 글을 버릴까요? 보류함에서 지워집니다(저장소 기록에는 남습니다).`)) return;
+      try {
+        await commitFiles(config.draftRepo, items.map((d) => ({ path: d.path, content: null })), `discard: ${items.length}개`);
+        $("preview").innerHTML = '<p class="empty">버렸습니다.</p>';
+        await loadDrafts();
+      } catch (e) {
+        alert(`버리기 실패: ${e.message}`);
+      }
+    }
+
+    // 토큰을 확인하고 youngapi 일 때만 관리 화면을 연다.
+    async function start() {
+      token = loadToken();
+      if (!token) { $("login").hidden = false; return; }
+      try {
+        const user = await gh("/user");
+        if (user.login.toLowerCase() !== config.owner) throw new Error("다른 계정의 토큰입니다");
+        $("login").hidden = true;
+        $("panel").hidden = false;
+        await loadDrafts();
+      } catch (e) {
+        saveToken("");
+        token = "";
+        $("panel").hidden = true;
+        $("login").hidden = false;
+        $("admin-status").textContent = `로그인 실패: ${e.message}`;
+      }
+    }
+
+    $("login-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      saveToken($("token").value.trim());
+      $("token").value = "";
+      start();
+    });
+    $("logout").addEventListener("click", () => { saveToken(""); location.reload(); });
+    $("refresh").addEventListener("click", () => loadDrafts());
+    $("publish-selected").addEventListener("click", () => publish(selected()));
+    $("discard-selected").addEventListener("click", () => discard(selected()));
+    start();
+  </script>
+</BaseLayout>

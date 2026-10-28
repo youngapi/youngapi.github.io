@@ -4,7 +4,8 @@ import sitemap from "@astrojs/sitemap";
 
 export default defineConfig({
   site: "https://youngapi.github.io",
-  integrations: [sitemap()],
+  // 관리 페이지는 사이트맵에서 뺀다
+  integrations: [sitemap({ filter: (page) => !page.includes("/admin") })],
   markdown: {
     shikiConfig: {
       // 라이트/다크 모드 각각에 맞는 코드 색을 함께 만든다
