@@ -3,15 +3,24 @@
 
 const API = "https://api.github.com";
 
+// 받은 토큰이 GitHub API 에서 거부되면(클라우드 세션의 git 전용 토큰 등) 그 뒤로는 토큰 없이 부른다
+let tokenRejected = false;
+
 // GitHub API 를 한 번 호출해서 JSON 을 돌려준다. 실패하면 상태 코드와 함께 오류를 낸다.
 async function gh(path, token) {
+  const useToken = token && !tokenRejected;
   const res = await fetch(path.startsWith("http") ? path : `${API}${path}`, {
     headers: {
       Accept: "application/vnd.github+json",
       "X-GitHub-Api-Version": "2022-11-28",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(useToken ? { Authorization: `Bearer ${token}` } : {}),
     },
   });
+  if (res.status === 401 && useToken) {
+    console.warn("GitHub 토큰이 거부되어 토큰 없이 다시 시도합니다(공개 저장소만 읽음).");
+    tokenRejected = true;
+    return gh(path, token);
+  }
   if (res.status === 409) return []; // 빈 저장소
   if (!res.ok) throw new Error(`GitHub API ${res.status} ${path}: ${(await res.text()).slice(0, 200)}`);
   return res.json();
