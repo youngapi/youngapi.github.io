@@ -21,7 +21,13 @@ const category = findCategory(post.data.category);
 const base = import.meta.env.BASE_URL;
 ---
 
-<BaseLayout title={post.data.title} description={post.data.description} activeCategory={category.slug} width="wide">
+<BaseLayout
+  title={post.data.title}
+  description={post.data.description}
+  activeCategory={category.slug}
+  width="wide"
+  seo={{ type: "article", publishedTime: post.data.date, headline: post.data.title, section: category.name, tags: post.data.tags }}
+>
   <div class="post-layout" style={`--cat:${category.color}`}>
     <article class="post">
       <header class="post-head">
@@ -32,6 +38,12 @@ const base = import.meta.env.BASE_URL;
           <time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
           <span>·</span>
           <span>{readingMinutes(post)}분</span>
+          {SITE.goatcounter && (
+            <>
+              <span>·</span>
+              <span>조회 <span data-views={`/posts/${post.id}/`}>-</span></span>
+            </>
+          )}
           {post.data.tags.map((tag) => <a class="tag" href={`${base}tags/${tag}/`}>#{tag}</a>)}
         </div>
       </header>

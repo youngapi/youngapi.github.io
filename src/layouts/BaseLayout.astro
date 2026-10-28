@@ -1,6 +1,7 @@
 ---
-// 모든 페이지의 공통 틀 — <head>, 머리말(카테고리 메뉴), 꼬리말, 다크 모드 전환을 담당한다.
+// 모든 페이지의 공통 틀 — <head>(SEO·조회수 수집 포함), 머리말(카테고리 메뉴), 꼬리말, 다크 모드 전환을 담당한다.
 import "../styles/global.css";
+import Seo, { type SeoProps } from "../components/Seo.astro";
 import { SITE, CATEGORIES } from "../site";
 
 interface Props {
@@ -10,11 +11,12 @@ interface Props {
   activeCategory?: string;
   // 본문 폭: 기본은 목록용, wide 는 글+목차용
   width?: "default" | "wide";
+  // 글 페이지에서 넘기는 SEO 정보(article 타입, 작성일, 태그 등)
+  seo?: Partial<SeoProps>;
 }
 
-const { title, description = SITE.description, activeCategory, width = "default" } = Astro.props;
+const { title, description = SITE.description, activeCategory, width = "default", seo = {} } = Astro.props;
 const pageTitle = title ? `${title} · ${SITE.title}` : SITE.title;
-const canonical = new URL(Astro.url.pathname, Astro.site);
 const base = import.meta.env.BASE_URL;
 const path = Astro.url.pathname;
 ---
@@ -25,15 +27,13 @@ const path = Astro.url.pathname;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{pageTitle}</title>
-    <meta name="description" content={description} />
-    <link rel="canonical" href={canonical} />
+    <Seo title={pageTitle} description={description} {...seo} />
     <link rel="icon" href={`${base}favicon.svg`} type="image/svg+xml" />
     <link rel="alternate" type="application/rss+xml" title={SITE.title} href={`${base}rss.xml`} />
     <link rel="sitemap" href={`${base}sitemap-index.xml`} />
-    <meta property="og:title" content={pageTitle} />
-    <meta property="og:description" content={description} />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content={canonical} />
+    {SITE.goatcounter && (
+      <script is:inline async data-goatcounter={`https://${SITE.goatcounter}.goatcounter.com/count`} src="https://gc.zgo.at/count.js"></script>
+    )}
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -90,6 +90,18 @@ const path = Astro.url.pathname;
         </div>
       </div>
     </footer>
+    {SITE.goatcounter && (
+      <script is:inline define:vars={{ code: SITE.goatcounter }}>
+        // data-views="경로" 칸마다 GoatCounter 공개 카운터에서 조회수를 받아 채운다. 실패하면 "-" 그대로 둔다
+        document.querySelectorAll("[data-views]").forEach(async (el) => {
+          try {
+            const res = await fetch(`https://${code}.goatcounter.com/counter/${encodeURIComponent(el.dataset.views)}.json`);
+            if (res.ok) el.textContent = (await res.json()).count;
+            else if (res.status === 404) el.textContent = "0";
+          } catch {}
+        });
+      </script>
+    )}
     <script is:inline>
       // 버튼을 누르면 라이트/다크를 바꾸고 선택을 기억한다
       document.getElementById("theme-toggle")?.addEventListener("click", () => {

@@ -7,6 +7,15 @@ export const SITE = {
   author: "youngapi",
   github: "https://github.com/youngapi",
   locale: "ko-KR",
+  // 링크 공유 미리보기 기본 이미지 (scripts/og-image.mjs 로 만든다)
+  ogImage: "/og-default.png",
+  // GoatCounter 사이트 코드 (https://<코드>.goatcounter.com). 비워 두면 조회수 수집·표시를 하지 않는다
+  goatcounter: "",
+  // 검색엔진 소유 확인 값. Google Search Console·네이버 서치어드바이저에서 받은 content 값만 넣는다
+  verification: {
+    google: "",
+    naver: "",
+  },
 };
 
 export type Category = (typeof categoryList)[number];

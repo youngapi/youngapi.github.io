@@ -1,0 +1,81 @@
+---
+// 검색엔진·링크 공유용 <head> 태그 — canonical, Open Graph, 트위터 카드, 구조화 데이터(JSON-LD), 검색엔진 소유 확인.
+import { SITE } from "../site";
+
+export interface SeoProps {
+  title: string;
+  description: string;
+  // 글 페이지면 article, 나머지는 website
+  type?: "website" | "article";
+  publishedTime?: Date;
+  // 구조화 데이터의 글 제목(사이트 이름 없이)
+  headline?: string;
+  section?: string;
+  tags?: string[];
+  // 검색 결과에서 뺄 페이지(404 등)
+  noindex?: boolean;
+}
+
+const { title, description, type = "website", publishedTime, headline, section, tags = [], noindex = false } = Astro.props as SeoProps;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const image = new URL(SITE.ogImage, Astro.site).href;
+const home = new URL("/", Astro.site).href;
+const author = { "@type": "Person", name: SITE.author, url: SITE.github };
+
+// 페이지 종류에 맞는 구조화 데이터를 만든다. 글은 BlogPosting, 첫 화면은 WebSite + Blog.
+const jsonLd =
+  type === "article"
+    ? {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        headline: headline ?? title,
+        description,
+        datePublished: publishedTime?.toISOString(),
+        dateModified: publishedTime?.toISOString(),
+        inLanguage: "ko",
+        url: canonical,
+        mainEntityOfPage: canonical,
+        image,
+        keywords: tags.join(", "),
+        articleSection: section,
+        author,
+        publisher: author,
+      }
+    : canonical === home
+      ? {
+          "@context": "https://schema.org",
+          "@graph": [
+            { "@type": "WebSite", name: SITE.title, url: home, inLanguage: "ko", description: SITE.description },
+            { "@type": "Blog", name: SITE.title, url: home, author },
+          ],
+        }
+      : null;
+---
+
+<link rel="canonical" href={canonical} />
+<meta name="description" content={description} />
+<meta name="author" content={SITE.author} />
+{noindex && <meta name="robots" content="noindex" />}
+
+<meta property="og:site_name" content={SITE.title} />
+<meta property="og:locale" content="ko_KR" />
+<meta property="og:type" content={type} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={image} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+{type === "article" && publishedTime && <meta property="article:published_time" content={publishedTime.toISOString()} />}
+{type === "article" && section && <meta property="article:section" content={section} />}
+{type === "article" && tags.map((tag) => <meta property="article:tag" content={tag} />)}
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={image} />
+
+{SITE.verification.google && <meta name="google-site-verification" content={SITE.verification.google} />}
+{SITE.verification.naver && <meta name="naver-site-verification" content={SITE.verification.naver} />}
+
+{jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
