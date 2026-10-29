@@ -70,7 +70,7 @@ npm run dev
 
 | 단계 | 누가 | 언제 |
 |---|---|---|
-| 수집 | 비공개 저장소 [youngapi/devlog-data](https://github.com/youngapi/devlog-data) 의 Actions | 매일 08:00 KST, 최근 3일 |
+| 수집 | 비공개 저장소 [youngapi/devlog-data](https://github.com/youngapi/devlog-data) 의 Actions | 매일 01:00 KST, 최근 3일 (예약 실행이 늦어져도 글쓰기 전에 끝나게 앞에 둠) |
 | 글쓰기 → 보류함 | Claude Code 클라우드 루틴 "youngapi 블로그 매일 개발 일지 초안" ([claude.ai/code/routines](https://claude.ai/code/routines)) | 매일 09:00 KST |
 
 클라우드 루틴은 Claude 구독 안에서 돌고, Claude GitHub 앱을 설치한 저장소(이 저장소와 devlog-data)에만 묶여 있어서 다른 저장소의 커밋을 직접 못 읽습니다. 그래서 수집은 devlog-data 의 Actions 가 하고 결과를 그 저장소의 `activity/YYYY-MM-DD.json`(작업 없는 날은 `.none`)에 둡니다. 루틴은 그 파일로 글만 씁니다.
