@@ -17,6 +17,8 @@ const posts = defineCollection({
     subcategory: z.string().optional(),
     // 프로젝트 slug(src/data/projects.json). 비우면 프로젝트에 묶이지 않은 일반 일지
     project: z.string().optional(),
+    // 글 갈래: note = 기술 노트(주제 하나를 정리한 글), diary = 개발 일지(그날 한 작업 중 기술 이야기)
+    type: z.enum(["note", "diary"]).default("note"),
     // 글 종류: log = 날짜별 작업 일지, overview = 프로젝트 소개·정리 글(프로젝트 페이지 맨 위에 나온다)
     kind: z.enum(["log", "overview"]).default("log"),
     tags: z.array(z.string()).default([]),

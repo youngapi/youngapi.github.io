@@ -143,6 +143,7 @@ function toMarkdown(date, draft, repoNames) {
     `description: ${JSON.stringify(draft.description)}`,
     `date: ${date}`,
     `category: ${draft.category}`,
+    `type: diary`,
     `tags: ${JSON.stringify(draft.tags)}`,
     `repos: ${JSON.stringify(repoNames)}`,
     "---",

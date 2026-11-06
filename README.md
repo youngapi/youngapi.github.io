@@ -8,7 +8,7 @@
 |---|---|
 | `src/content/posts/` | 글(마크다운). frontmatter 의 `category` 로 기술 메뉴가 나뉜다 |
 | `src/data/categories.json` | 기술 카테고리 목록. 메뉴와 자동 분류가 함께 쓴다 |
-| `src/pages/` | 홈, 전체 글, 카테고리, 태그, 소개, RSS |
+| `src/pages/` | 홈, 기술 노트(`/notes/`), 개발 일지(`/diary/`), 전체 글, 카테고리, 태그, 소개, RSS |
 | `scripts/devlog/` | 매일 초안 만들기 (수집 → 민감정보 제거 → 글쓰기 → 다시 검사), 말투 규칙 `style-guide.md` |
 | `devlog.config.json` | 초안 대상 계정, 비공개 저장소 포함 여부, 모델 |
 | `.github/workflows/deploy.yml` | `main` 에 push 하면 빌드해서 Pages 에 배포 |
@@ -29,6 +29,8 @@ category: backend   # backend | frontend | mobile | devops | database | ai | etc
 tags: ["spring", "mysql"]
 ---
 ```
+
+글은 두 갈래입니다. 기술 하나를 정리한 **기술 노트**는 기본값이고, 그날 작업을 적은 **개발 일지**는 `type: diary` 를 넣습니다. 머리말 메뉴의 "기술 노트" · "개발 일지" 가 각각 모아 보여 주고, "전체" 는 둘을 합쳐 보여 줍니다. 카테고리·태그 페이지에는 두 갈래가 함께 나오고 일지에는 "일지" 표시가 붙습니다. 매일 자동 초안은 개발 일지로 들어갑니다.
 
 `subcategory: "spring"` 처럼 하위 카테고리를 적을 수 있습니다. 비워 두면 태그가 가장 많이 겹치는 하위 카테고리로 자동 분류됩니다.
 
@@ -85,7 +87,7 @@ youngapi 계정에 연결되지 않은 이메일(회사 메일 등)의 커밋도
 3. **마무리** `node scripts/devlog/daily-draft.mjs --finalize .devlog-out/YYYY-MM-DD/draft.json --date YYYY-MM-DD`
    완성된 글을 다시 걸러 내고 글 파일을 만듭니다.
 4. 빌드가 되는지 확인하고 글을 **비공개 보류함 `devlog-data/drafts/`** 에 넣습니다. 이 블로그 저장소(공개)에는 아무것도 올리지 않습니다.
-5. **공개**: [/admin/](https://youngapi.github.io/admin/) 에서 미리 보고, 카테고리·하위 카테고리(태그로 추천됨)와 프로젝트·글 종류를 고른 뒤 공개합니다. 공개하면 글이 `src/content/posts/` 로 한 커밋에 들어가고 보류함에서 빠지며, 1~2분 뒤 배포됩니다.
+5. **공개**: [/admin/](https://youngapi.github.io/admin/) 에서 미리 보고, 갈래(기술 노트/개발 일지)·카테고리·하위 카테고리(태그로 추천됨)와 프로젝트·글 종류를 고른 뒤 공개합니다. 공개하면 글이 `src/content/posts/` 로 한 커밋에 들어가고 보류함에서 빠지며, 1~2분 뒤 배포됩니다.
 
 글은 기능 나열이 아니라 그 작업에 쓴 기술, 그 기술이 뭔지, 어떻게 썼는지, 무엇이 문제였는지를 개발자 일지 말투로 씁니다([`style-guide.md`](scripts/devlog/style-guide.md)).
 

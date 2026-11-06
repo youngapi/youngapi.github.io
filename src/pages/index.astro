@@ -35,8 +35,9 @@ const level = (n: number) => (n === 0 ? 0 : Math.min(4, Math.ceil((n / maxMonth)
       <h1>{SITE.description}</h1>
       <p class="hero-sub">백엔드 개발자 {SITE.author} 의 기술 블로그</p>
       <div class="hero-links">
-        <a class="btn" href={`${base}posts/`}>전체 글</a>
-        <a class="btn ghost" href={`${base}tags/`}>태그</a>
+        <a class="btn" href={`${base}notes/`}>기술 노트</a>
+        <a class="btn ghost" href={`${base}diary/`}>개발 일지</a>
+        <a class="btn ghost" href={`${base}posts/`}>전체 글</a>
         <a class="btn ghost" href={SITE.github}>GitHub</a>
       </div>
     </div>

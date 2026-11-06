@@ -1,0 +1,12 @@
+---
+// 개발 일지 페이지 — 그날 한 작업 중 기술 이야기를 적은 글(type: diary)만 연도별로 보여 준다.
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Archive from "../../components/Archive.astro";
+import { getPublishedPosts } from "../../lib/posts";
+
+const posts = (await getPublishedPosts()).filter((p) => p.data.type === "diary");
+---
+
+<BaseLayout title="개발 일지" description="그날그날 작업하며 쓴 기술 일지">
+  <Archive posts={posts} eyebrow="Diary" title="개발 일지" sub="그날 작업하며 남긴 기록" />
+</BaseLayout>

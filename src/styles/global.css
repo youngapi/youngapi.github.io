@@ -466,3 +466,7 @@ button.btn { cursor: pointer; font-family: inherit; }
 .admin-newproj .admin-row { margin: 0; }
 /* hidden 속성이 display 지정에 덮이지 않게 한다(관리 페이지 양식 등) */
 [hidden] { display: none !important; }
+
+/* 개발 일지 표시 */
+.badge.diary { background: var(--surface-2); border-color: transparent; color: var(--text-2); }
+.post-main .badge.diary { margin-left: 4px; }

@@ -1,0 +1,12 @@
+---
+// 기술 노트 페이지 — 주제 하나를 정리한 글(type: note)만 연도별로 보여 준다.
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Archive from "../../components/Archive.astro";
+import { getPublishedPosts } from "../../lib/posts";
+
+const posts = (await getPublishedPosts()).filter((p) => p.data.type !== "diary");
+---
+
+<BaseLayout title="기술 노트" description="기술별로 정리한 글">
+  <Archive posts={posts} eyebrow="Notes" title="기술 노트" sub="기술 하나씩 정리한 글" />
+</BaseLayout>

@@ -243,7 +243,7 @@ const config = {
         const pr = projects.find((x) => x.slug === d.meta.project);
         li.querySelector("small").textContent = bad.length
           ? `공개 불가: ${bad.join(", ")}`
-          : `${labelOf(d)}${pr ? ` · ${d.meta.kind === "overview" ? "소개 " : ""}[${pr.name}]` : ""} · ${(d.meta.tags || []).join(", ")}`;
+          : `${d.meta.type === "diary" ? "일지 · " : ""}${labelOf(d)}${pr ? ` · ${d.meta.kind === "overview" ? "소개 " : ""}[${pr.name}]` : ""} · ${(d.meta.tags || []).join(", ")}`;
         li.querySelector(".admin-item").addEventListener("click", () => showPreview(d));
         list.appendChild(li);
       }
@@ -266,7 +266,8 @@ const config = {
     function showPreview(d) {
       const p = $("preview");
       p.innerHTML = `<div class="meta"></div><h2 class="admin-title"></h2><p class="post-desc"></p>
-        <div class="admin-row admin-cats"><label>카테고리 <select data-f="category"></select></label>
+        <div class="admin-row admin-cats"><label>갈래 <select data-f="type"><option value="note">기술 노트</option><option value="diary">개발 일지</option></select></label>
+        <label>카테고리 <select data-f="category"></select></label>
         <label>하위 <select data-f="sub"></select></label></div>
         <div class="admin-row admin-cats"><label>프로젝트 <select data-f="project"></select></label>
         <label>종류 <select data-f="kind"><option value="log">일지</option><option value="overview">프로젝트 소개</option></select></label></div>
@@ -285,6 +286,15 @@ const config = {
         <button class="btn ghost" data-act="discard" type="button">버리기</button>
         <a class="btn ghost" target="_blank" rel="noopener">GitHub 에서 고치기</a></div><div class="prose"></div>`;
       p.querySelector(".meta").textContent = `${String(d.meta.date).slice(0, 10)} · ${(d.meta.tags || []).join(", ")}`;
+
+      // 갈래(기술 노트/개발 일지) 선택. 바꾸면 글 frontmatter 의 type 이 바뀐다(기술 노트는 기본값이라 칸을 지운다)
+      const typeSel = p.querySelector('[data-f="type"]');
+      typeSel.value = d.meta.type === "diary" ? "diary" : "note";
+      typeSel.addEventListener("change", () => {
+        d.text = setFrontmatter(d.text, "type", typeSel.value === "diary" ? "diary" : null);
+        Object.assign(d, parseFrontmatter(d.text));
+        renderList();
+      });
 
       // 카테고리·하위 카테고리 선택 상자. 바꾸면 바로 글 frontmatter 에 반영되고, 공개할 때 그 값으로 올라간다
       const catSel = p.querySelector('[data-f="category"]');

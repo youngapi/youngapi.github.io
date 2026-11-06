@@ -1,0 +1,33 @@
+---
+// 글 보관함 컴포넌트 — 받은 글들을 연도별로 묶어 목록으로 보여 준다. 전체 글·기술 노트·개발 일지 페이지가 같이 쓴다.
+import PostList from "./PostList.astro";
+import type { Post } from "../lib/posts";
+
+interface Props {
+  posts: Post[];
+  eyebrow: string;
+  title: string;
+  // 제목 아래 한 줄 설명(없으면 글 수만)
+  sub?: string;
+}
+
+const { posts, eyebrow, title, sub } = Astro.props;
+const byYear = new Map<number, Post[]>();
+for (const post of posts) {
+  const year = post.data.date.getFullYear();
+  byYear.set(year, [...(byYear.get(year) ?? []), post]);
+}
+---
+
+<header class="page-head">
+  <p class="eyebrow">{eyebrow}</p>
+  <h1 class="page-title">{title}</h1>
+  <p class="page-sub">{sub ? `${sub} · ` : ""}글 {posts.length}개</p>
+</header>
+{[...byYear.entries()].map(([year, list]) => (
+  <section id={`y${year}`}>
+    <h2 class="section-title">{year} <span class="count">{list.length}</span></h2>
+    <PostList posts={list} />
+  </section>
+))}
+{posts.length === 0 && <PostList posts={[]} />}
