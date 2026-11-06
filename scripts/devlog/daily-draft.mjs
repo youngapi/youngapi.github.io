@@ -103,7 +103,7 @@ async function collect({ since, until, token }) {
     }
     result.push({
       ...repo,
-      displayName: repo.private ? `비공개 프로젝트 ${String.fromCharCode(65 + privateIndex++)}` : repo.name,
+      displayName: repo.private ? `프로젝트 ${String.fromCharCode(65 + privateIndex++)}` : repo.name,
       commits: picked,
     });
   }

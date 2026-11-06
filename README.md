@@ -75,7 +75,7 @@ npm run dev
 
 클라우드 루틴은 Claude 구독 안에서 돌고, Claude GitHub 앱을 설치한 저장소(이 저장소와 devlog-data)에만 묶여 있어서 다른 저장소의 커밋을 직접 못 읽습니다. 그래서 수집은 devlog-data 의 Actions 가 하고 결과를 그 저장소의 `activity/YYYY-MM-DD.json`(작업 없는 날은 `.none`)에 둡니다. 루틴은 그 파일로 글만 씁니다.
 
-**비공개 저장소:** youngapi 가 소유한 비공개 저장소도 모읍니다(회사 조직 저장소는 제외). 저장소 이름은 "비공개 프로젝트 A" 로, 파일은 확장자만 남기고, 수집 자료는 비공개 저장소 devlog-data 에만 둡니다. devlog-data 에 읽기 전용 토큰 `DEVLOG_GITHUB_TOKEN` 이 없으면 공개 저장소만 모읍니다.
+**비공개 저장소:** youngapi 가 소유한 비공개 저장소도 모읍니다(회사 조직 저장소는 제외). 저장소 이름은 "프로젝트 A" 로, 파일은 확장자만 남기고, 수집 자료는 비공개 저장소 devlog-data 에만 둡니다. devlog-data 에 읽기 전용 토큰 `DEVLOG_GITHUB_TOKEN` 이 없으면 공개 저장소만 모읍니다.
 
 youngapi 계정에 연결되지 않은 이메일(회사 메일 등)의 커밋도 잡으려면 GitHub **Settings → Emails** 에 그 이메일을 추가하거나, devlog-data 저장소 Secrets 에 `DEVLOG_AUTHOR_EMAILS` 를 넣습니다.
 
@@ -124,7 +124,7 @@ youngapi 계정에 연결되지 않은 이메일(회사 메일 등)의 커밋도
 | `DEVLOG_REDACT_WORDS` | | `redactWords` 와 같은 값(쉼표 구분) |
 | `DEVLOG_GITHUB_TOKEN` | | 비공개 저장소까지 읽을 토큰. `devlog.config.json` 의 `includePrivate: true` 와 함께 쓴다 |
 
-비공개 저장소를 켜면 저장소 이름은 "비공개 프로젝트 A" 로 바뀌고 파일은 확장자만 남습니다.
+비공개 저장소를 켜면 저장소 이름은 "프로젝트 A" 로 바뀌고 파일은 확장자만 남습니다.
 
 ### 직접 돌려 보기
 
